@@ -10,26 +10,21 @@ L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
 
+var Legend = L.control({
+    position: 'topright'
+});
+
+Legend.onAdd = function(map) {
+    var src= "http://localhost:8080/thredds/wms/testAll/forscale.nc?REQUEST=GetLegendGraphic&LAYER=timeseries&PALETTE=rainbow";
+    var div = L.DomUtil.create('div', 'info legend');
+    div.innerHTML +=
+        '<img src="' + src + '" alt="legend">';
+    return div;
+};
+Legend.addTo(map);
 
 
 function addnetcdflayer (grid) {
-
-    let i = 0;
-    map.eachLayer(function(){ i += 1; });
-
-    if (i == 1) {
-        var testLegend = L.control({
-            position: 'topright'
-        });
-        testLegend.onAdd = function(map) {
-            var src= "http://localhost:8080/thredds/wms/testAll/floodedtstest.nc?REQUEST=GetLegendGraphic&LAYER=timeseries&PALETTE=rainbow";
-            var div = L.DomUtil.create('div', 'info legend');
-            div.innerHTML +=
-                '<img src="' + src + '" alt="legend">';
-            return div;
-        };
-        testLegend.addTo(map);
-    }
 
     var layer = 'timeseries'
 
@@ -58,7 +53,7 @@ function createlayer() {
         success: function (data) {
             if (!data.error) {
                 addnetcdflayer (data['gridid'])
-                document.getElementById("waitingoutput").innerHTML = '';
+                document.getElementsByClassName("loading").innerHTML = '';
             }
         }
     })
@@ -67,5 +62,59 @@ function createlayer() {
 
 function waiting_output() {
     var wait_text = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src='/static/flood_extent_app/images/giphy.gif'>";
-    document.getElementById('waitingoutput').innerHTML = wait_text;
+    document.getElementsByClassName('loading').innerHTML = wait_text;
 }
+
+function whenClicked(e) {
+    var gridid = e.target.feature.properties.GridID;
+    var loading = L.control({
+        position: 'topright'
+    });
+
+    loading.onAdd = function(map) {
+        var div = L.DomUtil.create('div', 'info loading');
+        div.innerHTML += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src='/static/flood_extent_app/images/loading.gif'>";
+        return div;
+    };
+    loading.addTo(map);
+
+    $.ajax({
+        type: 'GET',
+        url: '/apps/flood-extent-app/createnetcdf',
+        data: {'gridid':gridid},
+        success: function (data) {
+            if (!data.error) {
+                addnetcdflayer (data['gridid'])
+                $(".loading").remove()
+            }
+        }
+    })
+}
+
+function onEachFeature(feature,layer) {
+    layer.on({click:whenClicked
+    });
+}
+
+function displaygeojson() {
+    var geolayer = 'drainagelineproj.json'
+    $.ajax({
+        url: '/apps/flood-extent-app/displaygeojson/',
+        type: 'GET',
+        data: {'geolayer':geolayer},
+        contentType: 'application/json',
+        error: function (status) {
+
+        }, success: function (response) {
+            L.geoJSON(response, {
+            onEachFeature: onEachFeature}).addTo(map)
+        }
+    })
+}
+
+
+$(function() {
+    displaygeojson()
+    $("#app-content-wrapper").removeClass('show-nav')
+    $(".toggle-nav").removeClass('toggle-nav')
+})

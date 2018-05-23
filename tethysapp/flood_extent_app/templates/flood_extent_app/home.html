@@ -13,8 +13,6 @@
 
 {% block app_navigation_items %}
   {{ block.super }}
-  {% gizmo text_input %}
-  {% gizmo next_button %}
   <div id="waitingoutput" align="center"></div>
 {% endblock %}
 
@@ -43,8 +41,4 @@
 {% endblock %}
 
 {% block app_actions %}
-  {% gizmo save_button %}
-  {% gizmo edit_button %}
-  {% gizmo remove_button %}
-  {% gizmo previous_button %}
 {% endblock %}

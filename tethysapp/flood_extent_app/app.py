@@ -34,6 +34,11 @@ class FloodExtentApp(TethysAppBase):
                 url='flood-extent-app/createnetcdf',
                 controller='flood_extent_app.ajax_controllers.createnetcdf'
             ),
+            UrlMap(
+                name='createnetcdf',
+                url='flood-extent-app/displaygeojson',
+                controller='flood_extent_app.ajax_controllers.displaygeojson'
+            ),
         )
 
         return url_maps

@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import os
 import requests
+import json
 from .app import FloodExtentApp as app
 
 
@@ -39,7 +40,7 @@ def createnetcdf(request):
     minQ = float(gridcurve.loc[gridcurve['H'] == 1, 'Q'].iloc[0])
 
     request_params = dict(watershed_name='South America', subbasin_name='Continental', reach_id=comid,
-                          forecast_folder='20180513.0', stat_type='mean', return_format='csv')
+                          forecast_folder='most_recent', stat_type='mean', return_format='csv')
     request_headers = dict(Authorization='Token 2d03550b3b32cdfd03a0c876feda690d1d15ad40')
     res = requests.get('http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetForecast/', params=request_params,
                        headers=request_headers)
@@ -61,7 +62,10 @@ def createnetcdf(request):
 
     for b in range(0, len(times)):
         flow = (float(flowlist[b]))
-        H = 0.0
+        if flow == 0:
+            H = -1.0
+        else:
+            H = 0.0
         if flow > minQ:
             H = float(gridcurve.loc[gridcurve['Q'] > flow, 'H'].iloc[0]) - 1
             heights.append(H)
@@ -98,4 +102,25 @@ def createnetcdf(request):
 
     return_obj = {'success':True,'gridid':gridid}
 
+    return JsonResponse(return_obj)
+
+
+def displaygeojson(request):
+    return_obj = {
+        'success': False
+    }
+
+    # Check if its an ajax post request
+    if request.is_ajax() and request.method == 'GET':
+        return_obj['success'] = True
+        geolayer = request.GET.get('geolayer')
+        return_obj['geolayer'] = geolayer
+        app_workspace = app.get_app_workspace()
+        geofile = os.path.join(app_workspace.path, geolayer)
+        with open(geofile, 'r') as f:
+            fullstream = ''
+            streams = f.readlines()
+            for i in range(0, len(streams)):
+                fullstream += streams[i]
+        return_obj = json.loads(fullstream)
     return JsonResponse(return_obj)
