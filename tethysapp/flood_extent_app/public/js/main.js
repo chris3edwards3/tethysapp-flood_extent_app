@@ -1,9 +1,9 @@
 var map = L.map('map', {
-    zoom: 11,
+    zoom: 8,
     fullscreenControl: true,
     timeDimension: true,
     timeDimensionControl: true,
-    center: [-9.5938,-64.9586],
+    center: [27.952,84.479],
 });
 
 L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
@@ -23,6 +23,14 @@ Legend.onAdd = function(map) {
 };
 Legend.addTo(map);
 
+netcdf = L.layerGroup()
+
+function removelayers() {
+    netcdf.clearLayers()
+}
+
+$('#dateinput').change(removelayers)
+
 
 function addnetcdflayer (grid) {
 
@@ -40,24 +48,7 @@ function addnetcdflayer (grid) {
     var testTimeLayer = L.timeDimension.layer.wms(testLayer, {
         updateTimeDimension: true,
     });
-    testTimeLayer.addTo(map);
-}
-
-function createlayer() {
-    waiting_output()
-    var gridid = $("#grididinput").val();
-    $.ajax({
-        type: 'GET',
-        url: '/apps/flood-extent-app/createnetcdf',
-        data: {'gridid':gridid},
-        success: function (data) {
-            if (!data.error) {
-                addnetcdflayer (data['gridid'])
-                document.getElementsByClassName("loading").innerHTML = '';
-            }
-        }
-    })
-
+    netcdf.addLayer(testTimeLayer).addTo(map)
 }
 
 function waiting_output() {
@@ -67,6 +58,8 @@ function waiting_output() {
 
 function whenClicked(e) {
     var gridid = e.target.feature.properties.GridID;
+    var date = $("#dateinput").val();
+    console.log(date)
     var loading = L.control({
         position: 'topright'
     });
@@ -81,7 +74,7 @@ function whenClicked(e) {
     $.ajax({
         type: 'GET',
         url: '/apps/flood-extent-app/createnetcdf',
-        data: {'gridid':gridid},
+        data: {'gridid':gridid, 'date':date},
         success: function (data) {
             if (!data.error) {
                 addnetcdflayer (data['gridid'])
@@ -97,7 +90,7 @@ function onEachFeature(feature,layer) {
 }
 
 function displaygeojson() {
-    var geolayer = 'drainagelineproj.json'
+    var geolayer = 'nepaldrainage.json'
     $.ajax({
         url: '/apps/flood-extent-app/displaygeojson/',
         type: 'GET',

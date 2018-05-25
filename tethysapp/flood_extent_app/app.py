@@ -11,7 +11,7 @@ class FloodExtentApp(TethysAppBase):
     icon = 'flood_extent_app/images/icon.gif'
     package = 'flood_extent_app'
     root_url = 'flood-extent-app'
-    color = '#16a085'
+    color = '#49639a'
     description = 'Place a brief description of your app here.'
     tags = ''
     enable_feedback = False

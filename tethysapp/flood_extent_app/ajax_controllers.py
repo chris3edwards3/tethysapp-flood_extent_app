@@ -25,6 +25,7 @@ def createnetcdf(request):
 
 
     gridid = int(request.GET.get('gridid'))
+    date = request.GET.get('date')
 
     app_workspace = app.get_app_workspace()
     catchfloodnetcdf = os.path.join(app_workspace.path, catchfile)
@@ -53,7 +54,7 @@ def createnetcdf(request):
     minQ = float(gridcurve.loc[gridcurve['H'] == 1, 'Q'].iloc[0])
 
     request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=comid,
-                          forecast_folder='20170809.00', stat_type='max', return_format='csv')
+                          forecast_folder=date, stat_type='max', return_format='csv')
     request_headers = dict(Authorization='Token fa7fa9f7d35eddb64011913ef8a27129c9740f3c')
     res = requests.get('http://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetForecast/', params=request_params,
                        headers=request_headers)
@@ -84,8 +85,6 @@ def createnetcdf(request):
             heights.append(H)
         else:
             heights.append(H)
-
-    print (heights)
 
     flooded = handsmall.to_dataset()
 

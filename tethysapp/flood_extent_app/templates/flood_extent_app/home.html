@@ -2,6 +2,13 @@
 {% load tethys_gizmos %}
 
 {% block header_buttons %}
+    <div id="removelayers">
+      {% gizmo removebutton %}
+    </div>
+  <p style="font-weight:bold; margin-left:30px; color:white; margin-top: 11px;">Date Select</p>
+  <div id="dateselect">
+    {% gizmo dateinput %}
+  </div>
   <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="bottom" title="Help">
     <a data-toggle="modal" data-target="#help-modal"><span class="glyphicon glyphicon-question-sign"></span></a>
   </div>
