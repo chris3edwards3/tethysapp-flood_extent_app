@@ -1,3 +1,6 @@
+$("#app-content-wrapper").removeClass('show-nav')
+$(".toggle-nav").removeClass('toggle-nav')
+
 var map = L.map('map', {
     zoom: 8,
     fullscreenControl: true,
@@ -10,20 +13,64 @@ L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
 
+displaygeojson()
+
 var Legend = L.control({
-    position: 'topright'
+    position: 'bottomright'
 });
 
 Legend.onAdd = function(map) {
-    var src= "http://localhost:8080/thredds/wms/testAll/forscale.nc?REQUEST=GetLegendGraphic&LAYER=timeseries&PALETTE=rainbow";
+    var src= "http://localhost:8080/thredds/wms/testAll/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=timeseries&PALETTE=rainbow";
     var div = L.DomUtil.create('div', 'info legend');
     div.innerHTML +=
         '<img src="' + src + '" alt="legend">';
     return div;
 };
+
 Legend.addTo(map);
 
 netcdf = L.layerGroup()
+
+function plotlegend(stat) {
+    var checkprob = document.getElementById("checkprob");
+    var checkmax = document.getElementById("checkmax");
+    var checkmean = document.getElementById("checkmean");
+     $(".legend").remove()
+     var Legend = L.control({
+            position: 'bottomright'
+        });
+    removelayers();
+
+    if (stat == 'prob') {
+
+        var src = "http://localhost:8080/thredds/wms/testAll/probscale.nc?REQUEST=GetLegendGraphic&LAYER=timeseries&PALETTE=prob"
+
+        checkmax.checked = false
+        checkmean.checked = false
+
+    } else if (stat == 'max') {
+
+        var src = "http://localhost:8080/thredds/wms/testAll/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=timeseries&PALETTE=rainbow"
+
+        checkprob.checked = false
+        checkmean.checked = false
+    } else if (stat == 'mean') {
+
+        var src = "http://localhost:8080/thredds/wms/testAll/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=timeseries&PALETTE=rainbow"
+
+        checkmax.checked = false
+        checkprob.checked = false
+    }
+
+    Legend.onAdd = function(map) {
+            var div = L.DomUtil.create('div', 'info legend');
+            div.innerHTML +=
+                '<img src="' + src + '" alt="legend">';
+            return div;
+    };
+
+    Legend.addTo(map);
+}
 
 function removelayers() {
     netcdf.clearLayers()
@@ -32,17 +79,21 @@ function removelayers() {
 $('#dateinput').change(removelayers)
 
 
-function addnetcdflayer (grid) {
+function addnetcdflayer (wms, scale) {
 
+    if (scale == 'prob') {
+        range = '1.5,100'
+    } else {
+        range = '0,40'
+    }
     var layer = 'timeseries'
 
-    var testWMS="http://localhost:8080/thredds/wms/testAll/floodedgrid" + grid + ".nc"
-    var testLayer = L.tileLayer.wms(testWMS, {
+    var testLayer = L.tileLayer.wms(wms, {
         layers: layer,
         format: 'image/png',
         transparent: true,
         opacity:0.8,
-        colorscalerange: '0,30',
+        colorscalerange: range,
         attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
     });
     var testTimeLayer = L.timeDimension.layer.wms(testLayer, {
@@ -59,7 +110,9 @@ function waiting_output() {
 function whenClicked(e) {
     var gridid = e.target.feature.properties.GridID;
     var date = $("#dateinput").val();
-    console.log(date)
+    var checkprob = document.getElementById("checkprob");
+    var checkmax = document.getElementById("checkmax");
+    var checkmean = document.getElementById("checkmean");
     var loading = L.control({
         position: 'topright'
     });
@@ -71,17 +124,41 @@ function whenClicked(e) {
     };
     loading.addTo(map);
 
-    $.ajax({
-        type: 'GET',
-        url: '/apps/flood-extent-app/createnetcdf',
-        data: {'gridid':gridid, 'date':date},
-        success: function (data) {
-            if (!data.error) {
-                addnetcdflayer (data['gridid'])
-                $(".loading").remove()
+    if (checkprob.checked == true) {
+        console.log("check")
+        $.ajax({
+            type: 'GET',
+            url: '/apps/flood-extent-app/createprobnetcdf',
+            data: {'gridid':gridid, 'date':date},
+            success: function (data) {
+                if (!data.error) {
+                    var testWMS="http://localhost:8080/thredds/wms/testAll/prob" + data['gridid'] + ".nc"
+                    var scale = 'prob'
+                    addnetcdflayer (testWMS, scale)
+                    $(".loading").remove()
+                }
             }
+        })
+    } else {
+        if (checkmax.checked == true) {
+            var type = 'max'
+        } else {
+            var type = 'mean'
         }
-    })
+        $.ajax({
+            type: 'GET',
+            url: '/apps/flood-extent-app/createnetcdf',
+            data: {'gridid':gridid, 'date':date, 'type':type},
+            success: function (data) {
+                if (!data.error) {
+                    var testWMS="http://localhost:8080/thredds/wms/testAll/floodedgrid" + data['gridid'] + ".nc"
+                    var scale = 'prob'
+                    addnetcdflayer (testWMS, scale)
+                    $(".loading").remove()
+                }
+            }
+        })
+    }
 }
 
 function onEachFeature(feature,layer) {
@@ -92,7 +169,7 @@ function onEachFeature(feature,layer) {
 function displaygeojson() {
     var geolayer = 'nepaldrainage.json'
     $.ajax({
-        url: '/apps/flood-extent-app/displaygeojson/',
+        url: '/apps/flood-extent-app/displaydrainagelines/',
         type: 'GET',
         data: {'geolayer':geolayer},
         contentType: 'application/json',
@@ -103,11 +180,23 @@ function displaygeojson() {
             onEachFeature: onEachFeature}).addTo(map)
         }
     })
+//    var date = $("#dateinput").val();
+//    $.ajax({
+//        url: '/apps/flood-extent-app/displaywarningpts/',
+//        type: 'GET',
+//        data: {'date':date},
+//        contentType: 'application/json',
+//        error: function (status) {
+//
+//        }, success: function (response) {
+//            console.log(response)
+//            L.geoJSON(response).addTo(map)
+//        }
+//    })
 }
 
 
 $(function() {
-    displaygeojson()
-    $("#app-content-wrapper").removeClass('show-nav')
-    $(".toggle-nav").removeClass('toggle-nav')
+//    $("#app-content-wrapper").removeClass('show-nav')
+//    $(".toggle-nav").removeClass('toggle-nav')
 })

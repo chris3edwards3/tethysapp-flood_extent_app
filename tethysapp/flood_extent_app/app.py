@@ -8,7 +8,7 @@ class FloodExtentApp(TethysAppBase):
 
     name = 'Flood Extent App'
     index = 'flood_extent_app:home'
-    icon = 'flood_extent_app/images/icon.gif'
+    icon = 'flood_extent_app/images/flood.png'
     package = 'flood_extent_app'
     root_url = 'flood-extent-app'
     color = '#49639a'
@@ -35,9 +35,19 @@ class FloodExtentApp(TethysAppBase):
                 controller='flood_extent_app.ajax_controllers.createnetcdf'
             ),
             UrlMap(
-                name='createnetcdf',
-                url='flood-extent-app/displaygeojson',
-                controller='flood_extent_app.ajax_controllers.displaygeojson'
+                name='createprobnetcdf',
+                url='flood-extent-app/createprobnetcdf',
+                controller='flood_extent_app.ajax_controllers.createprobnetcdf'
+            ),
+            UrlMap(
+                name='displaydrainagelines',
+                url='flood-extent-app/displaydrainagelines',
+                controller='flood_extent_app.ajax_controllers.displaydrainagelines'
+            ),
+            UrlMap(
+                name='displaywarningpts',
+                url='flood-extent-app/displaywarningpts',
+                controller='flood_extent_app.ajax_controllers.displaywarningpts'
             ),
         )
 

@@ -2,12 +2,16 @@
     display:none;
 }
 
-#dateselect, removelayers {
+#dateselect, removelayers, checkboxes {
     margin-right: 30px;
     margin-left: 15px;
     margin-top: auto;
 }
 
 .select2 {
+    margin-top: 11px;
+}
+
+.checks {
     margin-top: 11px;
 }
