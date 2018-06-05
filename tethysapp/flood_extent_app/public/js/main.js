@@ -20,7 +20,7 @@ var Legend = L.control({
 });
 
 Legend.onAdd = function(map) {
-    var src= "http://localhost:8080/thredds/wms/testAll/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=timeseries&PALETTE=rainbow";
+    var src= "http://localhost:8080/thredds/wms/testAll/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=rainbow";
     var div = L.DomUtil.create('div', 'info legend');
     div.innerHTML +=
         '<img src="' + src + '" alt="legend">';
@@ -43,20 +43,20 @@ function plotlegend(stat) {
 
     if (stat == 'prob') {
 
-        var src = "http://localhost:8080/thredds/wms/testAll/probscale.nc?REQUEST=GetLegendGraphic&LAYER=timeseries&PALETTE=prob"
+        var src = "http://localhost:8080/thredds/wms/testAll/probscale.nc?REQUEST=GetLegendGraphic&LAYER=Flood_Probability&PALETTE=prob"
 
         checkmax.checked = false
         checkmean.checked = false
 
     } else if (stat == 'max') {
 
-        var src = "http://localhost:8080/thredds/wms/testAll/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=timeseries&PALETTE=rainbow"
+        var src = "http://localhost:8080/thredds/wms/testAll/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=rainbow"
 
         checkprob.checked = false
         checkmean.checked = false
     } else if (stat == 'mean') {
 
-        var src = "http://localhost:8080/thredds/wms/testAll/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=timeseries&PALETTE=rainbow"
+        var src = "http://localhost:8080/thredds/wms/testAll/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=rainbow"
 
         checkmax.checked = false
         checkprob.checked = false
@@ -81,12 +81,15 @@ $('#dateinput').change(removelayers)
 
 function addnetcdflayer (wms, scale) {
 
+    console.log(scale)
+
     if (scale == 'prob') {
-        range = '1.5,100'
+        var range = '1.5,100'
+        var layer = 'Flood_Probability'
     } else {
-        range = '0,40'
+        var range = '0,40'
+        var layer = 'Height'
     }
-    var layer = 'timeseries'
 
     var testLayer = L.tileLayer.wms(wms, {
         layers: layer,
@@ -152,7 +155,7 @@ function whenClicked(e) {
             success: function (data) {
                 if (!data.error) {
                     var testWMS="http://localhost:8080/thredds/wms/testAll/floodedgrid" + data['gridid'] + ".nc"
-                    var scale = 'prob'
+                    var scale = 'flooded'
                     addnetcdflayer (testWMS, scale)
                     $(".loading").remove()
                 }

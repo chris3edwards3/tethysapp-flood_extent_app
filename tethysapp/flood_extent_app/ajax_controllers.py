@@ -96,19 +96,25 @@ def createnetcdf(request):
     flooded.timeseries.values = gridonly.where(gridonly != gridid, height).values
     flooded.timeseries.values = xarray.where(flooded.timeseries >= flooded.nepalhandproj, flooded.nepalhandproj, np.nan).values
     floodedarray = flooded.timeseries.expand_dims('time', axis=2).to_masked_array()
+    oldheight = ''
 
     for index in range(1, len(heights)):
-        height = heights[index]
-        floodlen = len(floodedarray[0][0])
-        flooded_areas = gridonly.copy()
-        flooded['step'] = flooded_areas
-        flooded.step.values = gridonly.where(gridonly != gridid, height).values
-        floodedvalues = xarray.where(flooded.step >= flooded.nepalhandproj, flooded.nepalhandproj, np.nan).values
-        floodedarray = np.insert(floodedarray, floodlen, floodedvalues, axis=2)
-        flooded.__delitem__('step')
+        if heights[index] == oldheight:
+            floodlen = len(floodedarray[0][0])
+            floodedarray = np.insert(floodedarray, floodlen, floodedvalues, axis=2)
+        else:
+            height = heights[index]
+            floodlen = len(floodedarray[0][0])
+            flooded_areas = gridonly.copy()
+            flooded['step'] = flooded_areas
+            flooded.step.values = gridonly.where(gridonly != gridid, height).values
+            floodedvalues = xarray.where(flooded.step >= flooded.nepalhandproj, flooded.nepalhandproj, np.nan).values
+            floodedarray = np.insert(floodedarray, floodlen, floodedvalues, axis=2)
+            flooded.__delitem__('step')
+            oldheight = height
 
     times = pd.to_datetime(times)
-    ds = xarray.Dataset({'timeseries': (['lat', 'lon', 'time'], floodedarray)},
+    ds = xarray.Dataset({'Height': (['lat', 'lon', 'time'], floodedarray)},
                         coords={'lon': lons,
                                 'lat': lats,
                                 'time': times})
@@ -257,22 +263,25 @@ def createprobnetcdf(request):
 
         index = 0
         height = heights[index]
-        flooded_areas = gridonly.copy()
-        flooded['timeseries'] = flooded_areas
+        flooded['timeseries'] = gridonly
         flooded.timeseries.values = gridonly.where(gridonly != gridid, height).values
-        flooded.timeseries.values = xarray.where(flooded.timeseries >= flooded.nepalhandproj, flooded.nepalhandproj,
-                                                 np.nan).values
+        flooded.timeseries.values = xarray.where(flooded.timeseries >= flooded.nepalhandproj, flooded.nepalhandproj, np.nan).values
         floodedarray = flooded.timeseries.expand_dims('time', axis=2).to_masked_array()
+        oldheight = ''
 
         for index in range(1, len(heights)):
-            height = heights[index]
-            floodlen = len(floodedarray[0][0])
-            flooded_areas = gridonly.copy()
-            flooded['step'] = flooded_areas
-            flooded.step.values = gridonly.where(gridonly != gridid, height).values
-            floodedvalues = xarray.where(flooded.step >= flooded.nepalhandproj, flooded.nepalhandproj, np.nan).values
-            floodedarray = np.insert(floodedarray, floodlen, floodedvalues, axis=2)
-            flooded.__delitem__('step')
+            if heights[index] == oldheight:
+                floodlen = len(floodedarray[0][0])
+                floodedarray = np.insert(floodedarray, floodlen, floodedvalues, axis=2)
+            else:
+                height = heights[index]
+                floodlen = len(floodedarray[0][0])
+                flooded['step'] = gridonly
+                flooded.step.values = gridonly.where(gridonly != gridid, height).values
+                floodedvalues = xarray.where(flooded.step >= flooded.nepalhandproj, flooded.nepalhandproj, np.nan).values
+                floodedarray = np.insert(floodedarray, floodlen, floodedvalues, axis=2)
+                flooded.__delitem__('step')
+                oldheight = height
 
         non_nans = (~np.isnan(floodedarray)).sum(2)
         floodedprob = np.where(non_nans == 0, np.nan, non_nans) / 51 * 100
@@ -285,7 +294,7 @@ def createprobnetcdf(request):
 
     times = pd.to_datetime(times)
 
-    ds = xarray.Dataset({'timeseries': (['lat', 'lon', 'times'], totfloodedprob)},
+    ds = xarray.Dataset({'Flood Probability': (['lat', 'lon', 'times'], totfloodedprob)},
                         coords={'lon': lons,
                                 'lat': lats,
                                 'times': times})
