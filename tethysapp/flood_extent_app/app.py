@@ -1,4 +1,5 @@
 from tethys_sdk.base import TethysAppBase, url_map_maker
+from tethys_sdk.app_settings import CustomSetting
 
 
 class FloodExtentApp(TethysAppBase):
@@ -49,6 +50,34 @@ class FloodExtentApp(TethysAppBase):
                 url='flood-extent-app/displaywarningpts',
                 controller='flood_extent_app.ajax_controllers.displaywarningpts'
             ),
+            UrlMap(
+                name='getdates',
+                url='flood-extent-app/getdates',
+                controller='flood_extent_app.ajax_controllers.getdates'
+            ),
         )
 
         return url_maps
+
+    def custom_settings(self):
+
+        return (
+            CustomSetting(
+                name='tethys_staging_token',
+                type=CustomSetting.TYPE_STRING,
+                description='Unique tethys-staging token to access data from Streamflow Prediction Tool',
+                required = True
+            ),
+            CustomSetting(
+                name='tethys_token',
+                type=CustomSetting.TYPE_STRING,
+                description='Unique tethys token to access data from Streamflow Prediction Tool',
+                required=True
+            ),
+            CustomSetting(
+                name='thredds_folder',
+                type=CustomSetting.TYPE_STRING,
+                description='Flood Extent Thredds Directory (must contain geojson drainage lines, hand, rating curve, and catchments)',
+                required = True
+            ),
+        )
