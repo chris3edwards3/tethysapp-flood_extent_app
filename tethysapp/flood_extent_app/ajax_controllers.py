@@ -352,17 +352,17 @@ def getdates(request):
         watershed = 'South Asia'
         reach = 56412
 
-        request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=reach)
-
         if region == 'Historical':
             subbasin = 'Historical'
             request_headers = dict(Authorization='Token ' + tethys_staging_token)
+            request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=reach)
             res = requests.get('https://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetAvailableDates/',
                                params=request_params,
                                headers=request_headers)
         elif region == 'Current':
             subbasin = 'Mainland'
             request_headers = dict(Authorization='Token ' + tethys_token)
+            request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=reach)
             res = requests.get('https://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetAvailableDates/',
                                params=request_params,
                                headers=request_headers)
