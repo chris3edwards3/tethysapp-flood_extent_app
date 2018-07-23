@@ -20,7 +20,7 @@ var Legend = L.control({
 });
 
 Legend.onAdd = function(map) {
-    var src= "https://tethys.byu.edu/thredds/wms/testAll/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=rainbow";
+    var src= "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=rainbow";
     var div = L.DomUtil.create('div', 'info legend');
     div.innerHTML +=
         '<img src="' + src + '" alt="legend">';
