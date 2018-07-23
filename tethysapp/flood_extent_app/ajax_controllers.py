@@ -27,12 +27,12 @@ def createnetcdf(request):
         watershed = 'South Asia'
         subbasin = 'Mainland'
         token = 'Token ' + tethys_token
-        host = 'http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetForecast/'
+        host = 'https://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetForecast/'
     elif forecast == 'Historical':
         watershed = 'South Asia'
         subbasin = 'Historical'
         token = 'Token ' + tethys_staging_token
-        host = 'http://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetForecast/'
+        host = 'https://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetForecast/'
 
 
     gridid = int(request.GET.get('gridid'))
@@ -216,12 +216,12 @@ def createprobnetcdf(request):
         watershed = 'South Asia'
         subbasin = 'Mainland'
         token = 'Token ' + tethys_token
-        host = 'http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetEnsemble/'
+        host = 'https://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetEnsemble/'
     elif forecast == 'Historical':
         watershed = 'South Asia'
         subbasin = 'Historical'
         token = 'Token ' + tethys_staging_token
-        host = 'http://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetEnsemble/'
+        host = 'https://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetEnsemble/'
 
     # app_workspace = app.get_app_workspace()
     # catchfloodnetcdf = os.path.join(app_workspace.path, catchfile)
@@ -357,13 +357,13 @@ def getdates(request):
         if region == 'Historical':
             subbasin = 'Historical'
             request_headers = dict(Authorization='Token ' + tethys_staging_token)
-            res = requests.get('http://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetAvailableDates/',
+            res = requests.get('https://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetAvailableDates/',
                                params=request_params,
                                headers=request_headers)
         elif region == 'Current':
             subbasin = 'Mainland'
             request_headers = dict(Authorization='Token ' + tethys_token)
-            res = requests.get('http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetAvailableDates/',
+            res = requests.get('https://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetAvailableDates/',
                                params=request_params,
                                headers=request_headers)
 
