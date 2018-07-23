@@ -20,7 +20,7 @@ var Legend = L.control({
 });
 
 Legend.onAdd = function(map) {
-    var src= "http://tethys.byu.edu:7000/thredds/wms/testAll/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=rainbow";
+    var src= "https://tethys.byu.edu/thredds/wms/testAll/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=rainbow";
     var div = L.DomUtil.create('div', 'info legend');
     div.innerHTML +=
         '<img src="' + src + '" alt="legend">';
@@ -43,20 +43,20 @@ function plotlegend(stat) {
 
     if (stat == 'prob') {
 
-        var src = "http://tethys.byu.edu:7000/thredds/wms/testAll/floodextent/probscale.nc?REQUEST=GetLegendGraphic&LAYER=Flood_Probability&PALETTE=prob"
+        var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/probscale.nc?REQUEST=GetLegendGraphic&LAYER=Flood_Probability&PALETTE=prob"
 
         checkmax.checked = false
         checkmean.checked = false
 
     } else if (stat == 'max') {
 
-        var src = "http://tethys.byu.edu:7000/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=rainbow"
+        var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=rainbow"
 
         checkprob.checked = false
         checkmean.checked = false
     } else if (stat == 'mean') {
 
-        var src = "http://tethys.byu.edu:7000/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=rainbow"
+        var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=rainbow"
 
         checkmax.checked = false
         checkprob.checked = false
@@ -137,7 +137,7 @@ function whenClicked(e) {
             data: {'gridid':gridid, 'date':date, 'forecast':forecast},
             success: function (data) {
                 if (!data.error) {
-                    var testWMS="http://tethys.byu.edu:7000/thredds/wms/testAll/floodextent/prob" + data['gridid'] + ".nc"
+                    var testWMS="https://tethys.byu.edu/thredds/wms/testAll/floodextent/prob" + data['gridid'] + ".nc"
                     var scale = 'prob'
                     addnetcdflayer (testWMS, scale)
                     $(".loading").remove()
@@ -156,7 +156,7 @@ function whenClicked(e) {
             data: {'gridid':gridid, 'date':date, 'type':type, 'forecast':forecast},
             success: function (data) {
                 if (!data.error) {
-                    var testWMS="http://tethys.byu.edu:7000/thredds/wms/testAll/floodextent/floodedgrid" + data['gridid'] + ".nc"
+                    var testWMS="https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedgrid" + data['gridid'] + ".nc"
                     var scale = 'flooded'
                     addnetcdflayer (testWMS, scale)
                     $(".loading").remove()
@@ -204,7 +204,6 @@ function displaygeojson() {
 get_dates = function(){
     var region = $("#regioninput").val();
     $("#dateinput").empty()
-
 
     $.ajax({
         url: '/apps/flood-extent-app/getdates',

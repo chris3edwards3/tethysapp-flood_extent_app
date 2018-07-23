@@ -372,8 +372,6 @@ def getdates(request):
         for date in dates:
             fulldate.append((date[:4] + "-" + date[4:6] + "-" + date[6:8], date))
 
-        print fulldate
-
         return_obj = {'success':True, 'datelist':fulldate}
 
     return JsonResponse(return_obj)
