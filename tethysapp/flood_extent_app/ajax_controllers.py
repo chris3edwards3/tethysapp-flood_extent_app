@@ -37,7 +37,7 @@ def createnetcdf(request):
 
     gridid = int(request.GET.get('gridid'))
     date = request.GET.get('date')
-    type = request.GET.get('type')
+    forecasttype = request.GET.get('type')
 
     # app_workspace = app.get_app_workspace()
     # catchfloodnetcdf = os.path.join(app_workspace.path, catchfile)
@@ -70,7 +70,7 @@ def createnetcdf(request):
     minQ = float(gridcurve.loc[gridcurve['H'] == 1, 'Q'].iloc[0])
 
     request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=comid,
-                          forecast_folder=date, stat_type=type, return_format='csv')
+                          forecast_folder=date, stat_type=forecasttype, return_format='csv')
     request_headers = dict(Authorization= token)
     res = requests.get(host, params=request_params,
                        headers=request_headers)
