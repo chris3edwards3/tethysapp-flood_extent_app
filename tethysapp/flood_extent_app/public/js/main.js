@@ -50,13 +50,13 @@ function plotlegend(stat) {
 
     } else if (stat == 'max') {
 
-        var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=redblue&COLORSCALERANGE=0,40"
+        var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=whiteblue&COLORSCALERANGE=0,40"
 
         checkprob.checked = false
         checkmean.checked = false
     } else if (stat == 'mean') {
 
-        var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=redblue&COLORSCALERANGE=0,40"
+        var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=whiteblue&COLORSCALERANGE=0,40"
 
         checkmax.checked = false
         checkprob.checked = false
@@ -90,7 +90,7 @@ function addnetcdflayer (wms, scale) {
     } else {
         var range = '0,40'
         var layer = 'Height'
-        var style = 'boxfill/redblue'
+        var style = 'boxfill/whiteblue'
     }
 
     var testLayer = L.tileLayer.wms(wms, {
