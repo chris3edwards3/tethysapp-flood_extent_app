@@ -27,12 +27,12 @@ def createnetcdf(request):
         watershed = 'South Asia'
         subbasin = 'Mainland'
         token = 'Token ' + tethys_token
-        host = 'https://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetForecast/'
+        host = 'http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetForecast/'
     elif forecast == 'Historical':
         watershed = 'South Asia'
         subbasin = 'Historical'
         token = 'Token ' + tethys_staging_token
-        host = 'https://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetForecast/'
+        host = 'http://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetForecast/'
 
 
     gridid = int(request.GET.get('gridid'))
@@ -216,12 +216,12 @@ def createprobnetcdf(request):
         watershed = 'South Asia'
         subbasin = 'Mainland'
         token = 'Token ' + tethys_token
-        host = 'https://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetEnsemble/'
+        host = 'http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetEnsemble/'
     elif forecast == 'Historical':
         watershed = 'South Asia'
         subbasin = 'Historical'
         token = 'Token ' + tethys_staging_token
-        host = 'https://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetEnsemble/'
+        host = 'http://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetEnsemble/'
 
     # app_workspace = app.get_app_workspace()
     # catchfloodnetcdf = os.path.join(app_workspace.path, catchfile)
