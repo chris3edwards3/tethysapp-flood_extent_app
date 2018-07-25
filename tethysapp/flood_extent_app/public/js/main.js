@@ -146,14 +146,14 @@ function whenClicked(e) {
         })
     } else {
         if (checkmax.checked == true) {
-            var type = 'max'
+            var forecasttype = 'max'
         } else {
-            var type = 'mean'
+            var forecasttype = 'mean'
         }
         $.ajax({
             type: 'GET',
             url: '/apps/flood-extent-app/createnetcdf',
-            data: {'gridid':gridid, 'date':date, 'type':type, 'forecast':forecast},
+            data: {'gridid':gridid, 'date':date, 'forecasttype':forecasttype, 'forecast':forecast},
             success: function (data) {
                 if (!data.error) {
                     var testWMS="https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedgrid" + data['gridid'] + ".nc"
