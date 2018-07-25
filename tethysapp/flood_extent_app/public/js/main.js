@@ -86,9 +86,11 @@ function addnetcdflayer (wms, scale) {
     if (scale == 'prob') {
         var range = '1.5,100'
         var layer = 'Flood_Probability'
+        var style = 'boxfill/prob'
     } else {
         var range = '0,40'
         var layer = 'Height'
+        var style = 'boxfill/redblue'
     }
 
     var testLayer = L.tileLayer.wms(wms, {
@@ -96,6 +98,7 @@ function addnetcdflayer (wms, scale) {
         format: 'image/png',
         transparent: true,
         opacity:0.8,
+        style: style,
         colorscalerange: range,
         attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
     });
