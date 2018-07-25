@@ -20,7 +20,7 @@ var Legend = L.control({
 });
 
 Legend.onAdd = function(map) {
-    var src= "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=rainbow";
+    var src= "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=redblue&COLORSCALERANGE=0,100";
     var div = L.DomUtil.create('div', 'info legend');
     div.innerHTML +=
         '<img src="' + src + '" alt="legend">';
@@ -50,13 +50,13 @@ function plotlegend(stat) {
 
     } else if (stat == 'max') {
 
-        var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=rainbow"
+        var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=redblue&COLORSCALERANGE=0,100"
 
         checkprob.checked = false
         checkmean.checked = false
     } else if (stat == 'mean') {
 
-        var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=rainbow"
+        var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=redblue&COLORSCALERANGE=0,100"
 
         checkmax.checked = false
         checkprob.checked = false
