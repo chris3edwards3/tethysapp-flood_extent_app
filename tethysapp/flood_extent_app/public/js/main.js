@@ -154,7 +154,7 @@ function whenClicked(e) {
                     
                     if (data['message']) {
                         
-                        alert(date['message'])
+                        alert(data['message'])
                         $(".loading").remove()
                         
                     } else {
@@ -183,7 +183,7 @@ function whenClicked(e) {
                     
                     if (data['message']) {
                         
-                        alert(date['message'])
+                        alert(data['message'])
                         $(".loading").remove()
                         
                     } else {
