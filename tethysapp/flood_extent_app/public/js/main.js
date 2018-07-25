@@ -98,7 +98,7 @@ function addnetcdflayer (wms, scale) {
         format: 'image/png',
         transparent: true,
         opacity:0.8,
-        style: style,
+        styles: style,
         colorscalerange: range,
         attribution: '<a href="https://www.pik-potsdam.de/">PIK</a>'
     });
