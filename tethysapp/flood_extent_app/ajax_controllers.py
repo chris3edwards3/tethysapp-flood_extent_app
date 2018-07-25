@@ -38,6 +38,8 @@ def createnetcdf(request):
     gridid = int(request.GET.get('gridid'))
     date = request.GET.get('date')
     forecasttype = request.GET.get('forecasttype')
+    
+    print(forecasttype)
 
     # app_workspace = app.get_app_workspace()
     # catchfloodnetcdf = os.path.join(app_workspace.path, catchfile)
@@ -76,6 +78,8 @@ def createnetcdf(request):
                        headers=request_headers)
 
     content = res.content.splitlines()
+    
+    print(content)
 
     times = []
     flowlist = []
