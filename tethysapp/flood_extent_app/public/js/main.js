@@ -43,7 +43,7 @@ function plotlegend(stat) {
 
     if (stat == 'prob') {
 
-        var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/probscale.nc?REQUEST=GetLegendGraphic&LAYER=Flood_Probability&PALETTE=prob"
+        var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/probscale.nc?REQUEST=GetLegendGraphic&LAYER=Flood_Probability&PALETTE=prob&COLORSCALERANGE=0,100"
 
         checkmax.checked = false
         checkmean.checked = false
