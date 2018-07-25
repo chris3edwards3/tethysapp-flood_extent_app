@@ -16,7 +16,7 @@
 
 .select2 {
     margin-top: 11px;
-    width: 110px;
+    width: 110px !important;
 }
 
 .checks {
