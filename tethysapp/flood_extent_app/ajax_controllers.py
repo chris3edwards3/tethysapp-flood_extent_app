@@ -77,75 +77,81 @@ def createnetcdf(request):
     res = requests.get(host, params=request_params,
                        headers=request_headers)
 
-    content = res.content.splitlines()
+    if res.content == 'Invalid data: Invalid ECMWF Forecast file ...':
+        
+        return_obj = {'success':True,'message':"no streamflows available for this date"}
+        
+        return JsonResponse(return_obj)
     
-    print(content)
+    else:
+    
+        content = res.content.splitlines()
 
-    times = []
-    flowlist = []
+        times = []
+        flowlist = []
 
-    for timesteps in content:
-        ts = timesteps.split(",")
-        times.append(ts[0][:19])
-        flowlist.append(ts[1])
+        for timesteps in content:
+            ts = timesteps.split(",")
+            times.append(ts[0][:19])
+            flowlist.append(ts[1])
 
-    del times[0]
-    del flowlist[0]
-
-
-    heights = []
-
-    for b in range(0, len(times)):
-        flow = (float(flowlist[b]))
-        if flow == 0:
-            H = -1.0
-        else:
-            H = 0.0
-        if flow > minQ:
-            H = float(gridcurve.loc[gridcurve['Q'] > flow, 'H'].iloc[0]) - 1
-            heights.append(H)
-        else:
-            heights.append(H)
+        del times[0]
+        del flowlist[0]
 
 
-    flooded = handsmall.to_dataset()
+        heights = []
 
-    index = 0
-    height = heights[index]
-    flooded_areas = gridonly.copy()
-    flooded['timeseries'] = flooded_areas
-    flooded.timeseries.values = gridonly.where(gridonly != gridid, height).values
-    flooded.timeseries.values = xarray.where(flooded.timeseries >= flooded.nepalhandproj, flooded.nepalhandproj, np.nan).values
-    floodedarray = flooded.timeseries.expand_dims('time', axis=2).to_masked_array()
-    oldheight = ''
-
-    for index in range(1, len(heights)):
-        if heights[index] == oldheight:
-            floodlen = len(floodedarray[0][0])
-            floodedarray = np.insert(floodedarray, floodlen, floodedvalues, axis=2)
-        else:
-            height = heights[index]
-            floodlen = len(floodedarray[0][0])
-            flooded_areas = gridonly.copy()
-            flooded['step'] = flooded_areas
-            flooded.step.values = gridonly.where(gridonly != gridid, height).values
-            floodedvalues = xarray.where(flooded.step >= flooded.nepalhandproj, flooded.nepalhandproj, np.nan).values
-            floodedarray = np.insert(floodedarray, floodlen, floodedvalues, axis=2)
-            flooded.__delitem__('step')
-            oldheight = height
-
-    times = pd.to_datetime(times)
-    ds = xarray.Dataset({'Height': (['lat', 'lon', 'time'], floodedarray)},
-                        coords={'lon': lons,
-                                'lat': lats,
-                                'time': times})
+        for b in range(0, len(times)):
+            flow = (float(flowlist[b]))
+            if flow == 0:
+                H = -1.0
+            else:
+                H = 0.0
+            if flow > minQ:
+                H = float(gridcurve.loc[gridcurve['Q'] > flow, 'H'].iloc[0]) - 1
+                heights.append(H)
+            else:
+                heights.append(H)
 
 
-    ds.to_netcdf(thredds + "floodedgrid" + str(gridid) + ".nc")
+        flooded = handsmall.to_dataset()
 
-    return_obj = {'success':True,'gridid':gridid}
+        index = 0
+        height = heights[index]
+        flooded_areas = gridonly.copy()
+        flooded['timeseries'] = flooded_areas
+        flooded.timeseries.values = gridonly.where(gridonly != gridid, height).values
+        flooded.timeseries.values = xarray.where(flooded.timeseries >= flooded.nepalhandproj, flooded.nepalhandproj, np.nan).values
+        floodedarray = flooded.timeseries.expand_dims('time', axis=2).to_masked_array()
+        oldheight = ''
 
-    return JsonResponse(return_obj)
+        for index in range(1, len(heights)):
+            if heights[index] == oldheight:
+                floodlen = len(floodedarray[0][0])
+                floodedarray = np.insert(floodedarray, floodlen, floodedvalues, axis=2)
+            else:
+                height = heights[index]
+                floodlen = len(floodedarray[0][0])
+                flooded_areas = gridonly.copy()
+                flooded['step'] = flooded_areas
+                flooded.step.values = gridonly.where(gridonly != gridid, height).values
+                floodedvalues = xarray.where(flooded.step >= flooded.nepalhandproj, flooded.nepalhandproj, np.nan).values
+                floodedarray = np.insert(floodedarray, floodlen, floodedvalues, axis=2)
+                flooded.__delitem__('step')
+                oldheight = height
+
+        times = pd.to_datetime(times)
+        ds = xarray.Dataset({'Height': (['lat', 'lon', 'time'], floodedarray)},
+                            coords={'lon': lons,
+                                    'lat': lats,
+                                    'time': times})
+
+
+        ds.to_netcdf(thredds + "floodedgrid" + str(gridid) + ".nc")
+
+        return_obj = {'success':True,'gridid':gridid}
+
+        return JsonResponse(return_obj)
 
 
 def displaydrainagelines(request):
