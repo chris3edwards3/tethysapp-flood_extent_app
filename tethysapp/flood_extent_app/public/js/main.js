@@ -151,10 +151,20 @@ function whenClicked(e) {
             data: {'gridid':gridid, 'date':date, 'forecast':forecast},
             success: function (data) {
                 if (!data.error) {
-                    var testWMS="https://tethys.byu.edu/thredds/wms/testAll/floodextent/prob" + data['gridid'] + ".nc"
-                    var scale = 'prob'
-                    addnetcdflayer (testWMS, scale)
-                    $(".loading").remove()
+                    
+                    if (data['message']) {
+                        
+                        alert(date['message'])
+                        $(".loading").remove()
+                        
+                    } else {
+                    
+                        var testWMS="https://tethys.byu.edu/thredds/wms/testAll/floodextent/prob" + data['gridid'] + ".nc"
+                        var scale = 'prob'
+                        addnetcdflayer (testWMS, scale)
+                        $(".loading").remove()
+                        
+                    }
                 }
             }
         })
@@ -170,10 +180,20 @@ function whenClicked(e) {
             data: {'gridid':gridid, 'date':date, 'forecasttype':forecasttype, 'forecast':forecast},
             success: function (data) {
                 if (!data.error) {
-                    var testWMS="https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedgrid" + data['gridid'] + ".nc"
-                    var scale = 'flooded'
-                    addnetcdflayer (testWMS, scale)
-                    $(".loading").remove()
+                    
+                    if (data['message']) {
+                        
+                        alert(date['message'])
+                        $(".loading").remove()
+                        
+                    } else {
+                        
+                        var testWMS="https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedgrid" + data['gridid'] + ".nc"
+                        var scale = 'flooded'
+                        addnetcdflayer (testWMS, scale)
+                        $(".loading").remove()
+                    
+                    }
                 }
             }
         })
