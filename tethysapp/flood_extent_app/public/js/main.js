@@ -121,6 +121,17 @@ function whenClicked(e) {
     var checkmean = document.getElementById("checkmean");
     var forecast = $("#regioninput").val()
     console.log(forecast)
+    
+    if (forecast == ' ') {
+        alert('no forecast time is selected')
+        return;
+    }
+    
+    if (date == '') {
+        alert('no date is selected')
+        return;
+    }
+    
     var loading = L.control({
         position: 'topright'
     });
