@@ -34,8 +34,8 @@ def home(request):
                           attributes={"onclick":"removelayers()"})
 
     regioninput = SelectInput(name='regioninput',
-                               options=[(" ", " "),("Current","Current"),("Historical","Historical")],
-                               initial=[" "])
+                               options=[("          ", " "),("Current","Current"),("Historical","Historical")],
+                               initial=["          "])
 
     context = {
         'dateinput':dateinput,
