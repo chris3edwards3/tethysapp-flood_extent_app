@@ -2,7 +2,7 @@
     display:none;
 }
 
-#dateselect, removelayers, checkboxes {
+#dateselect, removelayers, checkboxes, regionselect {
     margin-right: 30px;
     margin-left: 15px;
     margin-top: auto;
