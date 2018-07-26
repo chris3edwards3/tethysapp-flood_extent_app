@@ -381,7 +381,7 @@ def getdates(request):
             subbasin = 'Mainland'
             request_headers = dict(Authorization='Token ' + tethys_token)
             request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=reach)
-            res = requests.get('http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetAvailableDates/',
+            res = requests.get('https://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetAvailableDates/',
                                params=request_params,
                                headers=request_headers)
 
