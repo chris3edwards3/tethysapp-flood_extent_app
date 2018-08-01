@@ -298,9 +298,15 @@ def createprobnetcdf(request):
         lats = gridonly.lat.values
         lons = gridonly.lon.values
 
+        if region == 'nepal':
+            varies = 0
+        elif region == 'bangladesh':
+            varies = 1
+
+
         # scaling down hand netcdf to specific gridid size
-        handsmall = hand.sel(lat=slice(lats[0], lats[-1] - (lats[0] - lats[1])))
-        handsmall = handsmall.sel(lon=slice(lons[0], lons[-1]))
+        handsmall = hand.sel(lat=slice(lats[0], lats[-1] - (varies * (lats[0] - lats[1]))))
+        handsmall = handsmall.sel(lon=slice(lons[0], lons[-1] - (varies * (lons[0] - lons[1]))))
 
         del flowlist[0]
 
