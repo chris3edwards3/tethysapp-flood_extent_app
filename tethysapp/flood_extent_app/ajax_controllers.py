@@ -86,7 +86,7 @@ def createnetcdf(request):
 
     if res.content == 'Invalid data: Invalid ECMWF Forecast file ...':
         
-        return_obj = {'success':True,'message':"no streamflows available for this date"}
+        return_obj = {'success':True,'errormessage':"no streamflows available for this date"}
         
         return JsonResponse(return_obj)
     
@@ -118,7 +118,7 @@ def createnetcdf(request):
                 H = 0.0
             if flow > maxQ:
 
-                return_obj['message'] = "Streamflow exceeds rating curve. Increase rating curve above " + str(maxH) + " meters"
+                return_obj['alertmessage'] = "Streamflow exceeds rating curve. Increase rating curve above " + str(maxH) + " meters"
 
                 heights.append(maxH)
 
@@ -264,6 +264,8 @@ def createprobnetcdf(request):
     comid = int(gridcurve.loc[gridcurve['H'] == 1, 'COMID'].iloc[0])
     gridcurve = ratcurve[ratcurve.GridID == gridid]
     minQ = float(gridcurve.loc[gridcurve['H'] == 1, 'Q'].iloc[0])
+    maxQ = float(gridcurve['Q'].iloc[-1])
+    maxH = float(gridcurve['H'].iloc[-1])
 
     request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=comid,
                           forecast_folder=date, ensemble='1-51')
@@ -274,7 +276,7 @@ def createprobnetcdf(request):
     
     if res.content == 'Invalid data: Invalid ECMWF Forecast file ...':
         
-        return_obj = {'success':True,'message':"no streamflows available for this date"}
+        return_obj = {'success':True,'errormessage':"no streamflows available for this date"}
         
         return JsonResponse(return_obj)
     
@@ -325,7 +327,13 @@ def createprobnetcdf(request):
                     H = -1.0
                 else:
                     H = 0.0
-                if flow > minQ:
+                if flow > maxQ:
+
+                    return_obj['alertmessage'] = "Streamflow exceeds rating curve. Increase rating curve above " + str(maxH) + " meters"
+
+                    heights.append(maxH)
+
+                elif flow > minQ:
                     H = float(gridcurve.loc[gridcurve['Q'] > flow, 'H'].iloc[0]) - 1
                     heights.append(H)
                 else:
