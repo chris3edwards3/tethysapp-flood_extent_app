@@ -33,14 +33,19 @@ def home(request):
                           name='remlayers',
                           attributes={"onclick":"removelayers()"})
 
-    regioninput = SelectInput(name='regioninput',
+    timeinput = SelectInput(name='timeinput',
                                options=[("          ", " "),("Current","Current"),("Historical","Historical")],
                                initial=["          "])
+
+    regioninput = SelectInput(name='regioninput',
+                              options=[("Nepal", "nepal"), ("Bangladesh", "bangladesh")],
+                              initial=["nepal"])
 
     context = {
         'dateinput':dateinput,
         'removebutton':removebutton,
-        'regioninput':regioninput
+        'timeinput':timeinput,
+        'regioninput': regioninput
     }
 
     return render(request, 'flood_extent_app/home.html', context)

@@ -16,7 +16,8 @@ def createnetcdf(request):
     tethys_staging_token = app.get_custom_setting('tethys_staging_token')
     thredds = app.get_custom_setting('thredds_folder')
 
-    region = 'nepal'
+    region = request.GET.get('region')
+
     catchfile = region + 'catchproj.nc'
     handfile = region + 'handproj.nc'
     ratfile = region + 'ratingcurve.csv'
@@ -38,8 +39,6 @@ def createnetcdf(request):
     gridid = int(request.GET.get('gridid'))
     date = request.GET.get('date')
     forecasttype = request.GET.get('forecasttype')
-    
-    print(forecasttype)
 
     # app_workspace = app.get_app_workspace()
     # catchfloodnetcdf = os.path.join(app_workspace.path, catchfile)
@@ -51,8 +50,8 @@ def createnetcdf(request):
     ratingcurve = thredds + ratfile
 
 
-    catchfloods = xarray.open_dataset(catchfloodnetcdf, autoclose=True).nepalcatchproj
-    hand = xarray.open_dataset(handnetcdf, autoclose=True).nepalhandproj
+    catchfloods = xarray.open_dataset(catchfloodnetcdf, autoclose=True).catchproj
+    hand = xarray.open_dataset(handnetcdf, autoclose=True).handproj
 
     # scaling down grid netcdf to specific gridid
     catlat = catchfloods.where(catchfloods.values == gridid).dropna('lat', how='all')
@@ -61,15 +60,23 @@ def createnetcdf(request):
     lats = gridonly.lat.values
     lons = gridonly.lon.values
 
+    if region == 'nepal':
+        varies = 0
+    elif region == 'bangladesh':
+        varies = 1
+
+
     # scaling down hand netcdf to specific gridid size
-    handsmall = hand.sel(lat=slice(lats[0], lats[-1] - (lats[0] - lats[1])))
-    handsmall = handsmall.sel(lon=slice(lons[0], lons[-1]))
+    handsmall = hand.sel(lat=slice(lats[0], lats[-1] - (varies * (lats[0] - lats[1]))))
+    handsmall = handsmall.sel(lon=slice(lons[0], lons[-1] - (varies * (lons[0] - lons[1]))))
 
     ratcurve = pd.read_csv(ratingcurve)
     gridcurve = ratcurve[ratcurve.GridID == gridid]
     comid = int(gridcurve.loc[gridcurve['H'] == 1, 'COMID'].iloc[0])
     gridcurve = ratcurve[ratcurve.GridID == gridid]
     minQ = float(gridcurve.loc[gridcurve['H'] == 1, 'Q'].iloc[0])
+    maxQ = float(gridcurve['Q'].iloc[-1])
+    maxH = float(gridcurve['H'].iloc[-1])
 
     request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=comid,
                           forecast_folder=date, stat_type=forecasttype, return_format='csv')
@@ -84,7 +91,9 @@ def createnetcdf(request):
         return JsonResponse(return_obj)
     
     else:
-    
+
+        return_obj = {'success': True}
+
         content = res.content.splitlines()
 
         times = []
@@ -107,7 +116,13 @@ def createnetcdf(request):
                 H = -1.0
             else:
                 H = 0.0
-            if flow > minQ:
+            if flow > maxQ:
+
+                return_obj['message'] = "Streamflow exceeds rating curve. Increase rating curve above " + str(maxH) + " meters"
+
+                heights.append(maxH)
+
+            elif flow > minQ:
                 H = float(gridcurve.loc[gridcurve['Q'] > flow, 'H'].iloc[0]) - 1
                 heights.append(H)
             else:
@@ -116,12 +131,13 @@ def createnetcdf(request):
 
         flooded = handsmall.to_dataset()
 
+
         index = 0
         height = heights[index]
         flooded_areas = gridonly.copy()
         flooded['timeseries'] = flooded_areas
         flooded.timeseries.values = gridonly.where(gridonly != gridid, height).values
-        flooded.timeseries.values = xarray.where(flooded.timeseries >= flooded.nepalhandproj, flooded.nepalhandproj, np.nan).values
+        flooded.timeseries.values = xarray.where(flooded.timeseries >= flooded.handproj, flooded.handproj, np.nan).values
         floodedarray = flooded.timeseries.expand_dims('time', axis=2).to_masked_array()
         oldheight = ''
 
@@ -135,7 +151,7 @@ def createnetcdf(request):
                 flooded_areas = gridonly.copy()
                 flooded['step'] = flooded_areas
                 flooded.step.values = gridonly.where(gridonly != gridid, height).values
-                floodedvalues = xarray.where(flooded.step >= flooded.nepalhandproj, flooded.nepalhandproj, np.nan).values
+                floodedvalues = xarray.where(flooded.step >= flooded.handproj, flooded.handproj, np.nan).values
                 floodedarray = np.insert(floodedarray, floodlen, floodedvalues, axis=2)
                 flooded.__delitem__('step')
                 oldheight = height
@@ -149,7 +165,7 @@ def createnetcdf(request):
 
         ds.to_netcdf(thredds + "floodedgrid" + str(gridid) + ".nc")
 
-        return_obj = {'success':True,'gridid':gridid}
+        return_obj['gridid'] = gridid
 
         return JsonResponse(return_obj)
 
@@ -215,7 +231,8 @@ def createprobnetcdf(request):
     gridid = int(request.GET.get('gridid'))
     date = request.GET.get('date')
 
-    region = 'nepal'
+    region = request.GET.get('region')
+
     catchfile = region + 'catchproj.nc'
     handfile = region + 'handproj.nc'
     ratfile = region + 'ratingcurve.csv'
@@ -271,8 +288,8 @@ def createprobnetcdf(request):
         for flow in flows:
             flowlist.append(flow.split(","))
 
-        catchfloods = xarray.open_dataset(catchfloodnetcdf, autoclose=True).nepalcatchproj
-        hand = xarray.open_dataset(handnetcdf, autoclose=True).nepalhandproj
+        catchfloods = xarray.open_dataset(catchfloodnetcdf, autoclose=True).catchproj
+        hand = xarray.open_dataset(handnetcdf, autoclose=True).handproj
 
         # scaling down grid netcdf to specific gridid
         catlat = catchfloods.where(catchfloods.values == gridid).dropna('lat', how='all')
@@ -314,7 +331,7 @@ def createprobnetcdf(request):
             height = heights[index]
             flooded['timeseries'] = gridonly
             flooded.timeseries.values = gridonly.where(gridonly != gridid, height).values
-            flooded.timeseries.values = xarray.where(flooded.timeseries >= flooded.nepalhandproj, flooded.nepalhandproj, np.nan).values
+            flooded.timeseries.values = xarray.where(flooded.timeseries >= flooded.handproj, flooded.handproj, np.nan).values
             floodedarray = flooded.timeseries.expand_dims('time', axis=2).to_masked_array()
             oldheight = ''
 
@@ -327,7 +344,7 @@ def createprobnetcdf(request):
                     floodlen = len(floodedarray[0][0])
                     flooded['step'] = gridonly
                     flooded.step.values = gridonly.where(gridonly != gridid, height).values
-                    floodedvalues = xarray.where(flooded.step >= flooded.nepalhandproj, flooded.nepalhandproj, np.nan).values
+                    floodedvalues = xarray.where(flooded.step >= flooded.handproj, flooded.handproj, np.nan).values
                     floodedarray = np.insert(floodedarray, floodlen, floodedvalues, axis=2)
                     flooded.__delitem__('step')
                     oldheight = height
@@ -365,19 +382,19 @@ def getdates(request):
         tethys_token = app.get_custom_setting('tethys_token')
         tethys_staging_token = app.get_custom_setting('tethys_staging_token')
 
-        region = request.GET.get('region')
+        time = request.GET.get('time')
 
         watershed = 'South Asia'
         reach = 56412
 
-        if region == 'Historical':
+        if time == 'Historical':
             subbasin = 'Historical'
             request_headers = dict(Authorization='Token ' + tethys_staging_token)
             request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=reach)
             res = requests.get('http://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetAvailableDates/',
                                params=request_params,
                                headers=request_headers)
-        elif region == 'Current':
+        elif time == 'Current':
             subbasin = 'Mainland'
             request_headers = dict(Authorization='Token ' + tethys_token)
             request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=reach)
