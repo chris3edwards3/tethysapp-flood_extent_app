@@ -281,6 +281,8 @@ def createprobnetcdf(request):
         return JsonResponse(return_obj)
     
     else:
+        
+        return_obj = {'success': True}
 
         flows = res.content.splitlines()
 
