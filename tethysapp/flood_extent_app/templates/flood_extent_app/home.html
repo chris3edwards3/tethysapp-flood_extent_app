@@ -44,12 +44,19 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <h5 class="modal-title" id="help-modal-label">Example Modal</h5>
+          <h5 class="modal-title" id="help-modal-label">Flood Extent Forecasing Application</h5>
         </div>
         <div class="modal-body">
-          <p>You can add custom buttons to the app header using the <code>header_buttons</code> block. Use anchor/link tags for the button and wrap it in a div with the class <code>header-button</code>. For buttons with the gliphyicons, add the <code>glyphicon-button</code> class as well.</p>
-          <p>Ever have trouble using a modal in a Tethys app? Use the <code>after_app_content</code> block for modal content to allow them to function properly. See: <a href="https://getbootstrap.com/javascript/#modals">Bootstrap Modals</a></p>
-          <p>Add tooltips to any element by adding the <code>data-toggle</code>, <code>data-placement</code>, and <code>title</code> attributes to the button. See: <a href="https://getbootstrap.com/javascript/#tooltips">Bootstrap Tooltips</a></p>
+          <h6>Background</h6>
+          <p> This application uses the streamflow forecasts from the <a href="https://tethys.byu.edu/apps/streamflow-preditcion-tool">Streamflow Prediction Tool</a> (guest/guest for user/pass)
+            and a synthetic rating curve to forecast stream heights for 10 days. These heights are then compared with a HAND raster
+            (Height Above Nearest Drainage) to forecast flood extents.</p>
+          <h6>Use</h6>
+          <p> 1 - Select which region you would like to view. </p>
+          <p> 2 - Select which time you would like to view (current forecasts or historical forecasts).</p>
+          <p> 3 - Select which date you would like to view</p>
+          <p> 4 - Select which flood extent type you would like to view. Max and Mean refer to using the max or mean streamflows from the 51 ensemble forecast. Probability refers to a flood extent probability
+          based on all 51 ensembles</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
