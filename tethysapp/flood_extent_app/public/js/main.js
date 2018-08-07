@@ -30,6 +30,7 @@ Legend.onAdd = function(map) {
 Legend.addTo(map);
 
 netcdf = L.layerGroup()
+warningpoints = L.layerGroup()
 
 
 function plotlegend(stat) {
@@ -77,7 +78,7 @@ function removelayers() {
     netcdf.clearLayers()
 }
 
-$('#dateinput').change(removelayers)
+$("#dateinput").on('change',get_warning_points);
 
 
 function addnetcdflayer (wms, scale) {
@@ -223,6 +224,11 @@ function changegeojson() {
     };
     loading.addTo(map);
     map.removeLayer(drainageline);
+
+    if (warningpoints) {
+        warningpoints.clearLayers()
+    }
+
     displaygeojson()
 }
 
@@ -241,6 +247,8 @@ function displaygeojson() {
 
         }, success: function (response) {
 
+            console.log(response)
+
             drainageline = L.geoJSON(response, {
             onEachFeature: onEachFeature}).addTo(map)
 
@@ -257,12 +265,17 @@ $("#regioninput").on('change',changegeojson);
 
 get_dates = function(){
     var time = $("#timeinput").val();
+    var region = $("#regioninput").val();
     $("#dateinput").empty()
+
+    if (warningpoints) {
+        warningpoints.clearLayers()
+    }
 
     $.ajax({
         url: '/apps/flood-extent-app/getdates',
         type: 'GET',
-        data: {'time' : time},
+        data: {'time' : time, 'region' : region},
         contentType: 'application/json',
         error: function (status) {
 
@@ -272,12 +285,14 @@ get_dates = function(){
                 var i;
                 var date;
 
-
-                for (i = 0; i < datelist.length; i++) {
-                    date = datelist[i];
-                    $("#dateinput").append('<option value="' + date[1] + '">' + date[0] + '</option>');
+                if (response['datelist'] == 'No Dates Available') {
+                    $("#dateinput").append('<option value=No Dates Available>No Dates Available</option>');
+                } else {
+                    for (i = 0; i < datelist.length; i++) {
+                        date = datelist[i];
+                        $("#dateinput").append('<option value="' + date[1] + '">' + date[0] + '</option>');
+                    }
                 }
-
 
         }
     });
@@ -286,6 +301,62 @@ get_dates = function(){
 };
 
 $("#timeinput").on('change',get_dates);
+
+function get_warning_points() {
+
+    removelayers()
+    warningpoints.clearLayers()
+
+    bounds = drainageline.getBounds()
+
+    nelat = parseFloat(bounds['_northEast']['lat'])
+    nelon = parseFloat(bounds['_northEast']['lng'])
+    swlat = parseFloat(bounds['_southWest']['lat'])
+    swlon = parseFloat(bounds['_southWest']['lng'])
+
+    var date = $("#dateinput").val();
+    var forecast = $("#timeinput").val()
+    var region = $("#regioninput").val()
+
+    $.ajax({
+        url: '/apps/flood-extent-app/displaywarningpts',
+        type: 'GET',
+        data: {'date' : date, 'forecast':forecast, 'region':region, 'nelat':nelat, 'nelon':nelon,'swlat':swlat,'swlon':swlon},
+        contentType: 'application/json',
+        error: function (status) {
+
+        }, success: function (response) {
+
+            warningpt2 = L.geoJSON(response['2'], {
+                pointToLayer: function (feature, latlng) {
+                    return L.circleMarker(latlng, {color: '#ffff00', radius: 2}); // The basic style
+                },
+                onEachFeature: function onEachFeature(feature,layer) {
+                    warningpoints.addLayer(layer).addTo(map)
+                }
+            })
+
+            warningpt10 = L.geoJSON(response['10'], {
+                pointToLayer: function (feature, latlng) {
+                    return L.circleMarker(latlng, {color: '#ff3333', radius: 2}); // The basic style
+                },
+                onEachFeature: function onEachFeature(feature,layer) {
+                    warningpoints.addLayer(layer).addTo(map)
+                }
+            })
+
+            warningpt20 = L.geoJSON(response['20'], {
+                pointToLayer: function (feature, latlng) {
+                    return L.circleMarker(latlng, {color: '#cc00cc', radius: 2}); // The basic style
+                },
+                onEachFeature: function onEachFeature(feature,layer) {
+                    warningpoints.addLayer(layer).addTo(map)
+                }
+            })
+
+        }
+    });
+}
 
 $(function() {
 //    $("#app-content-wrapper").removeClass('show-nav')

@@ -25,25 +25,34 @@ def createnetcdf(request):
     forecast = request.GET.get('forecast')
 
     if forecast == 'Current':
-        watershed = 'South Asia'
-        subbasin = 'Mainland'
-        token = 'Token ' + tethys_token
-        host = 'http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetForecast/'
+        if region == 'dominicanrepublic':
+            watershed = 'Dominican Republic'
+            subbasin = 'National'
+            token = 'Token ' + tethys_token
+            host = 'http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetForecast/'
+        else:
+            watershed = 'South Asia'
+            subbasin = 'Mainland'
+            token = 'Token ' + tethys_token
+            host = 'http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetForecast/'
     elif forecast == 'Historical':
-        watershed = 'South Asia'
-        subbasin = 'Historical'
-        token = 'Token ' + tethys_staging_token
-        host = 'http://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetForecast/'
+        if region == 'dominicanrepublic':
+
+            return_obj = {'success': True,
+                          'errormessage': "No historical data for this waterhsed"}
+
+            return JsonResponse(return_obj)
+
+        else:
+            watershed = 'South Asia'
+            subbasin = 'Historical'
+            token = 'Token ' + tethys_staging_token
+            host = 'http://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetForecast/'
 
 
     gridid = int(request.GET.get('gridid'))
     date = request.GET.get('date')
     forecasttype = request.GET.get('forecasttype')
-
-    # app_workspace = app.get_app_workspace()
-    # catchfloodnetcdf = os.path.join(app_workspace.path, catchfile)
-    # handnetcdf = os.path.join(app_workspace.path, handfile)
-    # ratingcurve = os.path.join(app_workspace.path, ratfile)
 
     catchfloodnetcdf = thredds + catchfile
     handnetcdf = thredds + handfile
@@ -60,7 +69,7 @@ def createnetcdf(request):
     lats = gridonly.lat.values
     lons = gridonly.lon.values
 
-    if region == 'nepal':
+    if region == 'nepal' or region == 'dominicanrepublic':
         varies = 0
     elif region == 'bangladesh':
         varies = 1
@@ -84,13 +93,7 @@ def createnetcdf(request):
     res = requests.get(host, params=request_params,
                        headers=request_headers)
 
-    if res.content == 'Invalid data: Invalid ECMWF Forecast file ...':
-        
-        return_obj = {'success':True,'errormessage':"no streamflows available for this date"}
-        
-        return JsonResponse(return_obj)
-    
-    else:
+    if res:
 
         return_obj = {'success': True}
 
@@ -107,7 +110,6 @@ def createnetcdf(request):
         del times[0]
         del flowlist[0]
 
-
         heights = []
 
         for b in range(0, len(times)):
@@ -118,7 +120,8 @@ def createnetcdf(request):
                 H = 0.0
             if flow > maxQ:
 
-                return_obj['alertmessage'] = "Streamflow exceeds rating curve. Increase rating curve above " + str(maxH) + " meters"
+                return_obj['alertmessage'] = "Streamflow exceeds rating curve. Increase rating curve above " + str(
+                    maxH) + " meters"
 
                 heights.append(maxH)
 
@@ -128,16 +131,15 @@ def createnetcdf(request):
             else:
                 heights.append(H)
 
-
         flooded = handsmall.to_dataset()
-
 
         index = 0
         height = heights[index]
         flooded_areas = gridonly.copy()
         flooded['timeseries'] = flooded_areas
         flooded.timeseries.values = gridonly.where(gridonly != gridid, height).values
-        flooded.timeseries.values = xarray.where(flooded.timeseries >= flooded.handproj, flooded.handproj, np.nan).values
+        flooded.timeseries.values = xarray.where(flooded.timeseries >= flooded.handproj, flooded.handproj,
+                                                 np.nan).values
         floodedarray = flooded.timeseries.expand_dims('time', axis=2).to_masked_array()
         oldheight = ''
 
@@ -162,10 +164,16 @@ def createnetcdf(request):
                                     'lat': lats,
                                     'time': times})
 
-
         ds.to_netcdf(thredds + "floodedgrid" + str(gridid) + ".nc")
 
         return_obj['gridid'] = gridid
+
+        return JsonResponse(return_obj)
+    
+    else:
+
+        return_obj = {'success': True,
+                      'errormessage': "Error retrieving flows from the Streamflow Prediction Tool: " + res.content}
 
         return JsonResponse(return_obj)
 
@@ -198,27 +206,78 @@ def displaywarningpts(request):
 
     # Check if its an ajax post request
     if request.is_ajax() and request.method == 'GET':
-        watershed = 'South Asia'
-        subbasin = 'Historical'
+
+        tethys_token = app.get_custom_setting('tethys_token')
+        tethys_staging_token = app.get_custom_setting('tethys_staging_token')
+
+        forecast = request.GET.get('forecast')
         date = request.GET.get('date')
+        region = request.GET.get('region')
+        nelat = float(request.GET.get('nelat'))
+        nelon = float(request.GET.get('nelon'))
+        swlon = float(request.GET.get('swlon'))
+        swlat = float(request.GET.get('swlat'))
 
-        request_params = dict(watershed_name=watershed, subbasin_name=subbasin, return_period=2, forecast_folder=date)
-        request_headers = dict(Authorization='Token ')
-        res = requests.get('http://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetWarningPoints/',
-                           params=request_params, headers=request_headers)
+        if forecast == 'Current':
+            if region == 'dominicanrepublic':
+                watershed = 'Dominican Republic'
+                subbasin = 'National'
+                token = 'Token ' + tethys_token
+                host = 'http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetWarningPoints/'
+            else:
+                watershed = 'South Asia'
+                subbasin = 'Mainland'
+                token = 'Token ' + tethys_token
+                host = 'http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetWarningPoints/'
+        elif forecast == 'Historical':
+            if region == 'dominicanrepublic':
 
-        points = json.loads(res.content)
+                return_obj = {'success': True,
+                              'errormessage': "No historical data for this waterhsed"}
 
-        return_obj = {'crs': points['crs'], 'type': points['type']}
+                return JsonResponse(return_obj)
 
-        return_points = []
+            else:
+                watershed = 'South Asia'
+                subbasin = 'Historical'
+                token = 'Token ' + tethys_staging_token
+                host = 'http://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetWarningPoints/'
 
-        for point in points['features']:
-            if float(point['geometry']['coordinates'][0]) < 88.0 and float(point['geometry']['coordinates'][0]) > 79.0:
-                if float(point['geometry']['coordinates'][1]) < 31.0 and float(point['geometry']['coordinates'][1]) > 26.0:
-                    return_points.append(point)
 
-        return_obj['features'] = return_points
+        returnperiods = {'2':'yellow','10':'red','20':'purple'}
+
+        return_obj = {}
+
+        for periods in returnperiods:
+
+            request_params = dict(watershed_name=watershed, subbasin_name=subbasin, return_period=int(periods), forecast_folder=date)
+            request_headers = dict(Authorization= token)
+            res = requests.get(host,
+                               params=request_params, headers=request_headers)
+
+            if res:
+
+                points = json.loads(res.content)
+
+                return_points = []
+
+
+                for point in points['features']:
+                    if float(point['geometry']['coordinates'][0]) < nelon and float(point['geometry']['coordinates'][0]) > swlon:
+                        if float(point['geometry']['coordinates'][1]) < nelat and float(point['geometry']['coordinates'][1]) > swlat:
+                            point['properties']['color'] = returnperiods[periods]
+                            return_points.append(point)
+
+                return_obj[periods] = return_points
+
+            else:
+
+                return_obj = {'success': True,
+                              'errormessage': "Error retrieving warning points from the Streamflow Prediction Tool: " + res.content}
+
+                return JsonResponse(return_obj)
+
+
     return JsonResponse(return_obj)
 
 
@@ -240,20 +299,29 @@ def createprobnetcdf(request):
     forecast = request.GET.get('forecast')
 
     if forecast == 'Current':
-        watershed = 'South Asia'
-        subbasin = 'Mainland'
-        token = 'Token ' + tethys_token
-        host = 'http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetEnsemble/'
+        if region == 'dominicanrepublic':
+            watershed = 'Dominican Republic'
+            subbasin = 'National'
+            token = 'Token ' + tethys_token
+            host = 'http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetEnsemble/'
+        else:
+            watershed = 'South Asia'
+            subbasin = 'Mainland'
+            token = 'Token ' + tethys_token
+            host = 'http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetEnsemble/'
     elif forecast == 'Historical':
-        watershed = 'South Asia'
-        subbasin = 'Historical'
-        token = 'Token ' + tethys_staging_token
-        host = 'http://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetEnsemble/'
+        if region == 'dominicanrepublic':
 
-    # app_workspace = app.get_app_workspace()
-    # catchfloodnetcdf = os.path.join(app_workspace.path, catchfile)
-    # handnetcdf = os.path.join(app_workspace.path, handfile)
-    # ratingcurve = os.path.join(app_workspace.path, ratfile)
+            return_obj = {'success': True,
+                          'errormessage': "No historical data for this waterhsed"}
+
+            return JsonResponse(return_obj)
+
+        else:
+            watershed = 'South Asia'
+            subbasin = 'Historical'
+            token = 'Token ' + tethys_staging_token
+            host = 'http://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetEnsemble/'
 
     catchfloodnetcdf = thredds + catchfile
     handnetcdf = thredds + handfile
@@ -273,15 +341,10 @@ def createprobnetcdf(request):
     res = requests.get(host,
                        params=request_params,
                        headers=request_headers)
+
     
-    if res.content == 'Invalid data: Invalid ECMWF Forecast file ...':
-        
-        return_obj = {'success':True,'errormessage':"no streamflows available for this date"}
-        
-        return JsonResponse(return_obj)
-    
-    else:
-        
+    if res:
+
         return_obj = {'success': True}
 
         flows = res.content.splitlines()
@@ -302,11 +365,10 @@ def createprobnetcdf(request):
         lats = gridonly.lat.values
         lons = gridonly.lon.values
 
-        if region == 'nepal':
+        if region == 'nepal' or region == 'dominicanrepublic':
             varies = 0
         elif region == 'bangladesh':
             varies = 1
-
 
         # scaling down hand netcdf to specific gridid size
         handsmall = hand.sel(lat=slice(lats[0], lats[-1] - (varies * (lats[0] - lats[1]))))
@@ -331,7 +393,8 @@ def createprobnetcdf(request):
                     H = 0.0
                 if flow > maxQ:
 
-                    return_obj['alertmessage'] = "Streamflow exceeds rating curve. Increase rating curve above " + str(maxH) + " meters"
+                    return_obj['alertmessage'] = "Streamflow exceeds rating curve. Increase rating curve above " + str(
+                        maxH) + " meters"
 
                     heights.append(maxH)
 
@@ -347,7 +410,8 @@ def createprobnetcdf(request):
             height = heights[index]
             flooded['timeseries'] = gridonly
             flooded.timeseries.values = gridonly.where(gridonly != gridid, height).values
-            flooded.timeseries.values = xarray.where(flooded.timeseries >= flooded.handproj, flooded.handproj, np.nan).values
+            flooded.timeseries.values = xarray.where(flooded.timeseries >= flooded.handproj, flooded.handproj,
+                                                     np.nan).values
             floodedarray = flooded.timeseries.expand_dims('time', axis=2).to_masked_array()
             oldheight = ''
 
@@ -383,9 +447,18 @@ def createprobnetcdf(request):
 
         ds.to_netcdf(thredds + 'prob' + str(gridid) + '.nc')
 
-        return_obj = {'success':True,'gridid':gridid}
+        return_obj = {'success': True, 'gridid': gridid}
 
         return JsonResponse(return_obj)
+
+    
+    else:
+
+
+        return_obj = {'success': True, 'errormessage': "Error retrieving flows from the Streamflow Prediction Tool: " + res.content}
+
+        return JsonResponse(return_obj)
+
 
 def getdates(request):
     return_obj = {
@@ -399,24 +472,45 @@ def getdates(request):
         tethys_staging_token = app.get_custom_setting('tethys_staging_token')
 
         time = request.GET.get('time')
+        region = request.GET.get('region')
 
-        watershed = 'South Asia'
-        reach = 56412
 
-        if time == 'Historical':
-            subbasin = 'Historical'
-            request_headers = dict(Authorization='Token ' + tethys_staging_token)
-            request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=reach)
-            res = requests.get('http://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetAvailableDates/',
-                               params=request_params,
-                               headers=request_headers)
-        elif time == 'Current':
-            subbasin = 'Mainland'
-            request_headers = dict(Authorization='Token ' + tethys_token)
-            request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=reach)
-            res = requests.get('http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetAvailableDates/',
-                               params=request_params,
-                               headers=request_headers)
+        if region != 'dominicanrepublic':
+            if time == 'Historical':
+                watershed = 'South Asia'
+                reach = 56412
+                subbasin = 'Historical'
+                request_headers = dict(Authorization='Token ' + tethys_staging_token)
+                request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=reach)
+                res = requests.get('http://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetAvailableDates/',
+                                   params=request_params,
+                                   headers=request_headers)
+            elif time == 'Current':
+                watershed = 'South Asia'
+                reach = 56412
+                subbasin = 'Mainland'
+                request_headers = dict(Authorization='Token ' + tethys_token)
+                request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=reach)
+                res = requests.get('http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetAvailableDates/',
+                                   params=request_params,
+                                   headers=request_headers)
+        else:
+            if time == 'Historical':
+                return_obj = {'success': True,
+                              'datelist': 'No Dates Available'}
+
+                return JsonResponse(return_obj)
+
+            elif time == 'Current':
+                watershed = 'Dominican Republic'
+                reach = 499
+                subbasin = 'National'
+                request_headers = dict(Authorization='Token ' + tethys_token)
+                request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=reach)
+                res = requests.get('http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetAvailableDates/',
+                                   params=request_params,
+                                   headers=request_headers)
+
 
         dates = ast.literal_eval(res.content)
         fulldate = []

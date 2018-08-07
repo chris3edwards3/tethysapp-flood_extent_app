@@ -38,7 +38,7 @@ def home(request):
                                initial=["          "])
 
     regioninput = SelectInput(name='regioninput',
-                              options=[("Nepal", "nepal"), ("Bangladesh", "bangladesh")],
+                              options=[("Nepal", "nepal"), ("Bangladesh", "bangladesh"), ("Dominican Republic", "dominicanrepublic")],
                               initial=["nepal"])
 
     context = {
