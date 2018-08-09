@@ -3,11 +3,28 @@ import xarray
 import numpy as np
 import pandas as pd
 import os
+import os.path
 import requests
 import json
 import ast
+from sqlalchemy.orm import sessionmaker
 from .app import FloodExtentApp as app
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, Float, String
+
+Base = declarative_base()
+
+class Regiondb(Base):
+
+    __tablename__ = 'regions'
+
+    region = Column(String, primary_key=True)
+    filename = Column(String)
+    watershed = Column(String)
+    subbasin = Column(String)
+    host = Column(String)
+    spt_river = Column(Integer)
 
 
 
@@ -19,11 +36,24 @@ def createnetcdf(request):
 
     region = request.GET.get('region')
 
+    forecast = request.GET.get('forecast')
+
+    Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+    session = Session()
+
+    dbs = session.query(Regiondb).all()
+
+    for db in dbs:
+        if db.filename == region:
+            watershed = db.watershed
+            subbasin = db.subbasin
+
+    session.close()
+
     catchfile = region + 'catchproj.nc'
     handfile = region + 'handproj.nc'
     ratfile = region + 'ratingcurve.csv'
 
-    forecast = request.GET.get('forecast')
 
     if forecast == 'Current':
         if region == 'dominicanrepublic':
@@ -192,13 +222,18 @@ def displaydrainagelines(request):
         thredds = app.get_custom_setting('thredds_folder')
         geofile = thredds + geolayer
 
-        with open(geofile, 'r') as f:
-            fullstream = ''
-            streams = f.readlines()
-            for i in range(0, len(streams)):
-                fullstream += streams[i]
-        return_obj = json.loads(fullstream)
-    return JsonResponse(return_obj)
+        if os.path.isfile(geofile):
+            with open(geofile, 'r') as f:
+                fullstream = ''
+                streams = f.readlines()
+                for i in range(0, len(streams)):
+                    fullstream += streams[i]
+            return_obj = json.loads(fullstream)
+
+            return JsonResponse(return_obj)
+        else:
+            return_obj['errormessage'] = 'No ' + geolayer + ' exists on the Thredds server. Please upload correct file'
+            return JsonResponse(return_obj)
 
 def displaywarningpts(request):
     return_obj = {

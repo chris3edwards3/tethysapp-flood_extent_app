@@ -9,7 +9,7 @@ from .app import FloodExtentApp as app
 
 Base = declarative_base()
 
-class Region(Base):
+class Regiondb(Base):
 
     __tablename__ = 'regions'
 
@@ -17,16 +17,18 @@ class Region(Base):
     filename = Column(String)
     watershed = Column(String)
     subbasin = Column(String)
+    host = Column(String)
     spt_river = Column(Integer)
 
 
-def add_new_region(region, filename, watershed, subbasin, spt_river):
+def add_new_region(region, filename, watershed, subbasin, host, spt_river):
 
-    new_region = Region(
+    new_region = Regiondb(
         region=region,
         filename =filename,
         watershed = watershed,
         subbasin = subbasin,
+        host = host,
         spt_river = spt_river
     )
 
@@ -43,10 +45,7 @@ def get_all_regions():
     Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
     session = Session()
 
-    # session.query(Region).filter(Region.region == 'Nepal').\
-    #     delete(synchronize_session='fetch')
-
-    regions = session.query(Region).all()
+    regions = session.query(Regiondb).all()
 
     session.close()
 
@@ -64,15 +63,15 @@ def deleteentry(request):
 
     data = request.GET.get('region')
 
-    session.query(Region).filter(Region.region == data). \
+    session.query(Regiondb).filter(Regiondb.region == data). \
         delete(synchronize_session=False)
 
     session.commit()
 
-    regions = session.query(Region).all()
+    regions = session.query(Regiondb).all()
 
     for region in regions:
-        return_obj[region.region]= [region.region, region.filename, region.watershed, region.subbasin, region.spt_river]
+        return_obj[region.region]= [region.region, region.filename, region.watershed, region.subbasin, region.host, region.spt_river]
 
 
     session.close()

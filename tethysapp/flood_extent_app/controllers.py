@@ -35,7 +35,7 @@ def home(request):
     for region in regions:
         table_rows.append(
             (
-                region.region, region.filename, region.watershed, region.subbasin, region.spt_river
+                region.region, region.filename, region.watershed, region.subbasin, region.host, region.spt_river
             )
 
         )
@@ -43,7 +43,7 @@ def home(request):
 
 
     regions_table = DataTableView(
-        column_names = ('Region','File Name', 'Watershed','Subbasin','SPT River', 'Delete Button'),
+        column_names = ('Region','File Name', 'Watershed','Subbasin', 'Host', 'SPT River', 'Delete Button'),
         rows = table_rows,
         searching=True,
         attributes={"id":"regiontable"}
@@ -92,6 +92,11 @@ def home(request):
                           placeholder='National',
                           )
 
+    addhost = TextInput(display_text='SPT Host (Streamflow Prediction Tool Website)',
+                            name='addhost',
+                            placeholder='e.g. tethys.byu.edu, tethys-staging.byu.edu',
+                            )
+
     addsptriver = TextInput(display_text='SPT River (Any river within SPT watershed and subbasin from above)',
                             name='addsptriver',
                             placeholder='499',
@@ -103,12 +108,14 @@ def home(request):
     watershed = ''
     subbasin = ''
     spt_river = ''
+    host = ''
 
     region_error = ''
     filename_error = ''
     watershed_error = ''
     subbasin_error = ''
     spt_river_error = ''
+    host_error = ''
 
     if request.POST and 'submit' in request.POST:
 
@@ -118,6 +125,7 @@ def home(request):
         watershed = request.POST.get('addwatershed')
         subbasin = request.POST.get('addsubbasin')
         spt_river = request.POST.get('addsptriver')
+        host = request.POST.get('addhost')
 
         if not region:
             has_errors = True
@@ -135,12 +143,16 @@ def home(request):
             has_errors = True
             filename_error = 'Filename is required'
 
+        if not host:
+            has_errors = True
+            host_error = 'Host is required'
+
         if not spt_river:
             has_errors = True
             spt_river_error = 'SPT River is required'
 
         if not has_errors:
-            add_new_region(region, filename, watershed, subbasin, spt_river)
+            add_new_region(region, filename, watershed, subbasin, host, spt_river)
             return redirect(reverse('flood_extent_app:home'))
 
         messages.error(request, "Please fix errors.")
@@ -159,7 +171,8 @@ def home(request):
         'addwatershed': addwatershed,
         'addsubbasin': addsubbasin,
         'addsptriver': addsptriver,
-        'regions_table':regions_table
+        'regions_table':regions_table,
+        'addhost':addhost
     }
 
     return render(request, 'flood_extent_app/home.html', context)

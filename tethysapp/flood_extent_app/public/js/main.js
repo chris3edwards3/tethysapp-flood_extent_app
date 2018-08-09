@@ -319,27 +319,23 @@ function displaygeojson() {
 
         }, success: function (response) {
 
-//            if (layercount > 1) {
-//                map.eachLayer(function (layer) {
-//                    map.removeLayer(layer)
-//                })
-//                L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-//                    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-//                }).addTo(map);
-//            }
+            if (response['errormessage']) {
 
-//            drainageline = L.geoJSON(response, {
-//            onEachFeature: onEachFeature}).addTo(map)
+                alert(response['errormessage'])
+                $(".loading").remove()
 
-            drainageline = L.geoJSON(response, {
-                onEachFeature: onEachFeature
-                }
-            ).addTo(map)
+            } else {
 
-            map.fitBounds(drainageline.getBounds());
+                drainageline = L.geoJSON(response, {
+                    onEachFeature: onEachFeature
+                    }
+                ).addTo(map)
 
-            $(".loading").remove()
+                map.fitBounds(drainageline.getBounds());
 
+                $(".loading").remove()
+
+            }
         }
     })
 }
