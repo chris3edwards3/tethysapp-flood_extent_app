@@ -13,8 +13,6 @@ L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
 
-displaygeojson()
-
 var Legend = L.control({
     position: 'bottomright'
 });
@@ -31,6 +29,73 @@ Legend.addTo(map);
 
 netcdf = L.layerGroup()
 warningpoints = L.layerGroup()
+drainageline = L.geoJSON()
+
+initialtable()
+
+
+function initialtable() {
+    var mytable = document.getElementById('regiontable').getElementsByTagName("tbody")[0]
+    var rowcount = document.getElementById('regiontable').getElementsByTagName("tbody")[0].getElementsByTagName("tr").length
+
+    for (b = 0; b < rowcount; b++) {
+        data = mytable.rows[b].cells[0].innerHTML
+        row = mytable.rows[b]
+        var button = row.insertCell(5)
+        var btn = document.createElement('input')
+        btn.type = "button"
+        btn.className = "btn btn-danger"
+        btn.value = "X"
+        btn.onclick = (function(data) {return function () {delete_entry(data)}})(data)
+        button.appendChild(btn)
+    }
+}
+
+function delete_entry(region) {
+    $.ajax({
+            type: 'GET',
+            url: '/apps/flood-extent-app/deleteentry',
+            data: {'region':region},
+            success: function (data) {
+
+                var mytable = document.getElementById('regiontable').getElementsByTagName("tbody")[0]
+                var rowcount = document.getElementById('regiontable').getElementsByTagName("tbody")[0].getElementsByTagName("tr").length
+
+                mytable.innerHTML = ''
+
+                for (var key in data) {
+                    if (key != 'success') {
+                        var regionname = data[key][0]
+                        var row = mytable.insertRow(-1)
+                        if (row.rowIndex % 2) {
+                            row.className = 'odd'
+                        } else {
+                            row.className = 'even'
+                        }
+                        var region = row.insertCell(0)
+                        var filename = row.insertCell(1)
+                        var watershed = row.insertCell(2)
+                        var subbasin = row.insertCell(3)
+                        var sptriver = row.insertCell(4)
+                        var button = row.insertCell(5)
+                        region.innerHTML = data[key][0]
+                        filename.innerHTML = data[key][1]
+                        watershed.innerHTML = data[key][2]
+                        subbasin.innerHTML = data[key][3]
+                        sptriver.innerHTML = data[key][4]
+                        var btn = document.createElement('input')
+                        btn.type = "button"
+                        btn.className = "btn btn-danger"
+                        btn.value = "X"
+                        btn.onclick = (function(regionname) {return function () {delete_entry(regionname)}})(regionname)
+                        button.appendChild(btn)
+                    }
+                }
+
+            }
+        })
+}
+
 
 
 function plotlegend(stat) {
@@ -223,7 +288,8 @@ function changegeojson() {
         return div;
     };
     loading.addTo(map);
-    map.removeLayer(drainageline);
+
+    map.removeLayer(drainageline)
 
     if (warningpoints) {
         warningpoints.clearLayers()
@@ -233,6 +299,12 @@ function changegeojson() {
 }
 
 function displaygeojson() {
+
+    drainageline = L.geoJSON()
+
+    if (drainageline) {
+        drainageline.removeFrom(map)
+    }
 
     var region = $("#regioninput").val();
 
@@ -247,10 +319,22 @@ function displaygeojson() {
 
         }, success: function (response) {
 
-            console.log(response)
+//            if (layercount > 1) {
+//                map.eachLayer(function (layer) {
+//                    map.removeLayer(layer)
+//                })
+//                L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+//                    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+//                }).addTo(map);
+//            }
+
+//            drainageline = L.geoJSON(response, {
+//            onEachFeature: onEachFeature}).addTo(map)
 
             drainageline = L.geoJSON(response, {
-            onEachFeature: onEachFeature}).addTo(map)
+                onEachFeature: onEachFeature
+                }
+            ).addTo(map)
 
             map.fitBounds(drainageline.getBounds());
 
@@ -357,6 +441,24 @@ function get_warning_points() {
         }
     });
 }
+
+function openregionmodal() {
+    $("#add-region-modal").modal('show')
+}
+
+function openviewmodal() {
+    $("#view-region-modal").modal('show')
+}
+
+
+
+//set_up_region = function () {
+//    var files = $("#files")[0].files
+//    alert(files)
+//}
+//
+//$("#submit").on('click',set_up_region);
+
 
 $(function() {
 //    $("#app-content-wrapper").removeClass('show-nav')

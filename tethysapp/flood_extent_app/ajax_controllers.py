@@ -7,6 +7,7 @@ import requests
 import json
 import ast
 from .app import FloodExtentApp as app
+from sqlalchemy.orm import sessionmaker
 
 
 
@@ -521,3 +522,4 @@ def getdates(request):
         return_obj = {'success':True, 'datelist':fulldate}
 
     return JsonResponse(return_obj)
+

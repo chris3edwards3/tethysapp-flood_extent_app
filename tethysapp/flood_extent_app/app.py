@@ -1,5 +1,6 @@
 from tethys_sdk.base import TethysAppBase, url_map_maker
 from tethys_sdk.app_settings import CustomSetting
+from tethys_sdk.app_settings import PersistentStoreDatabaseSetting
 
 
 class FloodExtentApp(TethysAppBase):
@@ -55,6 +56,11 @@ class FloodExtentApp(TethysAppBase):
                 url='flood-extent-app/getdates',
                 controller='flood_extent_app.ajax_controllers.getdates'
             ),
+            UrlMap(
+                name='deleteentry',
+                url='flood-extent-app/deleteentry',
+                controller='flood_extent_app.model.deleteentry'
+            ),
         )
 
         return url_maps
@@ -81,3 +87,18 @@ class FloodExtentApp(TethysAppBase):
                 required = True
             ),
         )
+
+    def persistent_store_settings(self):
+        """
+        Define Persistent Store Settings.
+        """
+        ps_settings = (
+            PersistentStoreDatabaseSetting(
+                name='primary_db',
+                description='primary database',
+                initializer='flood_extent_app.model.init_primary_db',
+                required=True
+            ),
+        )
+
+        return ps_settings
