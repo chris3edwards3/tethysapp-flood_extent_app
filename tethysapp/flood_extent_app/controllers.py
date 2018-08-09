@@ -23,10 +23,6 @@ def home(request):
                           name='remlayers',
                           attributes={"onclick":"removelayers()"})
 
-    timeinput = SelectInput(name='timeinput',
-                               options=[("          ", " "),("Current","Current"),("Historical","Historical")],
-                               initial=["          "])
-
     regions = get_all_regions()
 
     table_rows = []
@@ -59,7 +55,7 @@ def home(request):
         name='add-button',
         icon='glyphicon glyphicon-plus',
         style='success',
-        attributes = {"onclick":"openregionmodal()"},
+        attributes = {"onclick":"openregionmodal()","style":"margin-right:5px"},
         submit=True
     )
 
@@ -68,7 +64,7 @@ def home(request):
         name='view-button',
         icon='glyphicon glyphicon-plus',
         style='success',
-        attributes={"onclick": "openviewmodal()"},
+        attributes={"onclick": "openviewmodal()","style":"margin-right:5px"},
         submit=True
     )
 
@@ -162,7 +158,6 @@ def home(request):
     context = {
         'dateinput':dateinput,
         'removebutton':removebutton,
-        'timeinput':timeinput,
         'regioninput': regioninput,
         'add_button': add_button,
         'view_button': view_button,

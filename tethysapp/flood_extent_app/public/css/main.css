@@ -2,13 +2,12 @@
     display:none;
 }
 
-#dateselect, removelayers, checkboxes {
-    margin-right: 30px;
-    margin-left: 15px;
-    margin-top: auto;
+#removelayers {
+    margin-right: 10px;
+    margin-left: 10px;
 }
 
-#timeselect, #regionselect {
+#regionselect, #dateselect {
     margin-right: 10px;
     margin-left: 10px;
     margin-top: auto;

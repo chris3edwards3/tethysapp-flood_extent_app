@@ -7,11 +7,12 @@ import os.path
 import requests
 import json
 import ast
-from sqlalchemy.orm import sessionmaker
 from .app import FloodExtentApp as app
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, Float, String
+import logging
+
 
 Base = declarative_base()
 
@@ -36,50 +37,30 @@ def createnetcdf(request):
 
     region = request.GET.get('region')
 
-    forecast = request.GET.get('forecast')
-
     Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
     session = Session()
 
     dbs = session.query(Regiondb).all()
 
     for db in dbs:
-        if db.filename == region:
+        if db.region == region:
+            filename = db.filename
             watershed = db.watershed
             subbasin = db.subbasin
+            hostsite = db.host
 
     session.close()
 
-    catchfile = region + 'catchproj.nc'
-    handfile = region + 'handproj.nc'
-    ratfile = region + 'ratingcurve.csv'
+    host = 'http://' + hostsite + '/apps/streamflow-prediction-tool/api/GetForecast/'
 
+    if hostsite == 'tethys.byu.edu':
+        token = 'Token ' + tethys_token
+    elif hostsite == 'tethys-staging.byu.edu':
+        token = 'Token ' + tethys_staging_token
 
-    if forecast == 'Current':
-        if region == 'dominicanrepublic':
-            watershed = 'Dominican Republic'
-            subbasin = 'National'
-            token = 'Token ' + tethys_token
-            host = 'http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetForecast/'
-        else:
-            watershed = 'South Asia'
-            subbasin = 'Mainland'
-            token = 'Token ' + tethys_token
-            host = 'http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetForecast/'
-    elif forecast == 'Historical':
-        if region == 'dominicanrepublic':
-
-            return_obj = {'success': True,
-                          'errormessage': "No historical data for this waterhsed"}
-
-            return JsonResponse(return_obj)
-
-        else:
-            watershed = 'South Asia'
-            subbasin = 'Historical'
-            token = 'Token ' + tethys_staging_token
-            host = 'http://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetForecast/'
-
+    catchfile = filename + 'catchproj.nc'
+    handfile = filename + 'handproj.nc'
+    ratfile = filename + 'ratingcurve.csv'
 
     gridid = int(request.GET.get('gridid'))
     date = request.GET.get('date')
@@ -100,9 +81,9 @@ def createnetcdf(request):
     lats = gridonly.lat.values
     lons = gridonly.lon.values
 
-    if region == 'nepal' or region == 'dominicanrepublic':
+    if region == 'Nepal' or region == 'Dominican Republic' or region == 'Nepal(Historical)':
         varies = 0
-    elif region == 'bangladesh':
+    elif region == 'Bangladesh':
         varies = 1
 
 
@@ -161,6 +142,10 @@ def createnetcdf(request):
                 heights.append(H)
             else:
                 heights.append(H)
+
+        maxheight=str(max(heights))
+
+        return_obj['maxheight'] = maxheight
 
         flooded = handsmall.to_dataset()
 
@@ -246,7 +231,6 @@ def displaywarningpts(request):
         tethys_token = app.get_custom_setting('tethys_token')
         tethys_staging_token = app.get_custom_setting('tethys_staging_token')
 
-        forecast = request.GET.get('forecast')
         date = request.GET.get('date')
         region = request.GET.get('region')
         nelat = float(request.GET.get('nelat'))
@@ -254,31 +238,25 @@ def displaywarningpts(request):
         swlon = float(request.GET.get('swlon'))
         swlat = float(request.GET.get('swlat'))
 
-        if forecast == 'Current':
-            if region == 'dominicanrepublic':
-                watershed = 'Dominican Republic'
-                subbasin = 'National'
-                token = 'Token ' + tethys_token
-                host = 'http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetWarningPoints/'
-            else:
-                watershed = 'South Asia'
-                subbasin = 'Mainland'
-                token = 'Token ' + tethys_token
-                host = 'http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetWarningPoints/'
-        elif forecast == 'Historical':
-            if region == 'dominicanrepublic':
+        Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+        session = Session()
 
-                return_obj = {'success': True,
-                              'errormessage': "No historical data for this waterhsed"}
+        dbs = session.query(Regiondb).all()
 
-                return JsonResponse(return_obj)
+        for db in dbs:
+            if db.region == region:
+                watershed = db.watershed
+                subbasin = db.subbasin
+                hostsite = db.host
 
-            else:
-                watershed = 'South Asia'
-                subbasin = 'Historical'
-                token = 'Token ' + tethys_staging_token
-                host = 'http://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetWarningPoints/'
+        session.close()
 
+        if hostsite == 'tethys.byu.edu':
+            token = 'Token ' + tethys_token
+        elif hostsite == 'tethys-staging.byu.edu':
+            token = 'Token ' + tethys_staging_token
+
+        host = 'http://' + hostsite + '/apps/streamflow-prediction-tool/api/GetWarningPoints/'
 
         returnperiods = {'2':'yellow','10':'red','20':'purple'}
 
@@ -328,36 +306,30 @@ def createprobnetcdf(request):
 
     region = request.GET.get('region')
 
-    catchfile = region + 'catchproj.nc'
-    handfile = region + 'handproj.nc'
-    ratfile = region + 'ratingcurve.csv'
+    Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+    session = Session()
 
-    forecast = request.GET.get('forecast')
+    dbs = session.query(Regiondb).all()
 
-    if forecast == 'Current':
-        if region == 'dominicanrepublic':
-            watershed = 'Dominican Republic'
-            subbasin = 'National'
-            token = 'Token ' + tethys_token
-            host = 'http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetEnsemble/'
-        else:
-            watershed = 'South Asia'
-            subbasin = 'Mainland'
-            token = 'Token ' + tethys_token
-            host = 'http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetEnsemble/'
-    elif forecast == 'Historical':
-        if region == 'dominicanrepublic':
+    for db in dbs:
+        if db.region == region:
+            filename = db.filename
+            watershed = db.watershed
+            subbasin = db.subbasin
+            hostsite = db.host
 
-            return_obj = {'success': True,
-                          'errormessage': "No historical data for this waterhsed"}
+    session.close()
 
-            return JsonResponse(return_obj)
+    catchfile = filename + 'catchproj.nc'
+    handfile = filename + 'handproj.nc'
+    ratfile = filename + 'ratingcurve.csv'
 
-        else:
-            watershed = 'South Asia'
-            subbasin = 'Historical'
-            token = 'Token ' + tethys_staging_token
-            host = 'http://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetEnsemble/'
+    host = 'http://' + hostsite + '/apps/streamflow-prediction-tool/api/GetEnsemble/'
+
+    if hostsite == 'tethys.byu.edu':
+        token = 'Token ' + tethys_token
+    elif hostsite == 'tethys-staging.byu.edu':
+        token = 'Token ' + tethys_staging_token
 
     catchfloodnetcdf = thredds + catchfile
     handnetcdf = thredds + handfile
@@ -401,9 +373,9 @@ def createprobnetcdf(request):
         lats = gridonly.lat.values
         lons = gridonly.lon.values
 
-        if region == 'nepal' or region == 'dominicanrepublic':
+        if region == 'Nepal' or region == 'Dominican Republic' or region == 'Nepal(Historical)':
             varies = 0
-        elif region == 'bangladesh':
+        elif region == 'Bangladesh':
             varies = 1
 
         # scaling down hand netcdf to specific gridid size
@@ -483,7 +455,7 @@ def createprobnetcdf(request):
 
         ds.to_netcdf(thredds + 'prob' + str(gridid) + '.nc')
 
-        return_obj = {'success': True, 'gridid': gridid}
+        return_obj = {'success': True, 'gridid': gridid, 'maxheight':'100'}
 
         return JsonResponse(return_obj)
 
@@ -507,45 +479,32 @@ def getdates(request):
         tethys_token = app.get_custom_setting('tethys_token')
         tethys_staging_token = app.get_custom_setting('tethys_staging_token')
 
-        time = request.GET.get('time')
         region = request.GET.get('region')
 
+        Session = app.get_persistent_store_database('primary_db', as_sessionmaker=True)
+        session = Session()
 
-        if region != 'dominicanrepublic':
-            if time == 'Historical':
-                watershed = 'South Asia'
-                reach = 56412
-                subbasin = 'Historical'
-                request_headers = dict(Authorization='Token ' + tethys_staging_token)
-                request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=reach)
-                res = requests.get('http://tethys-staging.byu.edu/apps/streamflow-prediction-tool/api/GetAvailableDates/',
-                                   params=request_params,
-                                   headers=request_headers)
-            elif time == 'Current':
-                watershed = 'South Asia'
-                reach = 56412
-                subbasin = 'Mainland'
-                request_headers = dict(Authorization='Token ' + tethys_token)
-                request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=reach)
-                res = requests.get('http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetAvailableDates/',
-                                   params=request_params,
-                                   headers=request_headers)
-        else:
-            if time == 'Historical':
-                return_obj = {'success': True,
-                              'datelist': 'No Dates Available'}
+        dbs = session.query(Regiondb).all()
 
-                return JsonResponse(return_obj)
+        for db in dbs:
+            if db.region == region:
+                watershed = db.watershed
+                subbasin = db.subbasin
+                hostsite = db.host
+                reach = db.spt_river
 
-            elif time == 'Current':
-                watershed = 'Dominican Republic'
-                reach = 499
-                subbasin = 'National'
-                request_headers = dict(Authorization='Token ' + tethys_token)
-                request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=reach)
-                res = requests.get('http://tethys.byu.edu/apps/streamflow-prediction-tool/api/GetAvailableDates/',
-                                   params=request_params,
-                                   headers=request_headers)
+        session.close()
+
+        if hostsite == 'tethys.byu.edu':
+            token = 'Token ' + tethys_token
+        elif hostsite == 'tethys-staging.byu.edu':
+            token = 'Token ' + tethys_staging_token
+
+        request_headers = dict(Authorization= token)
+        request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=reach)
+        res = requests.get('http://' + hostsite + '/apps/streamflow-prediction-tool/api/GetAvailableDates/',
+                           params=request_params,
+                           headers=request_headers)
 
 
         dates = ast.literal_eval(res.content)

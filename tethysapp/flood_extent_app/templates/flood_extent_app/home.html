@@ -2,27 +2,25 @@
 {% load tethys_gizmos %}
 
 {% block header_buttons %}
-  {% gizmo view_button %}
-  {% gizmo add_button %}
+  {% if user.is_superuser or user.is_staff %}
+    {% gizmo view_button %}
+    {% gizmo add_button %}
+  {% endif %}
+  <p style="font-weight:bold; color:white; margin-top: 11px;">Region Select</p>
+  <div id="regionselect">
+    {% gizmo regioninput %}
+  </div>
+  <p style="font-weight:bold; color:white; margin-top: 11px;">Date Select</p>
+  <div id="dateselect">
+    {% gizmo dateinput %}
+  </div>
   <div id="checkboxes">
     <label style="color:white; margin-top: 11px">Probability:</label><input type="checkbox" class = "checks" id="checkprob" onclick="plotlegend('prob')">
     <label style="color:white; margin-top: 11px">Max:</label> <input type="checkbox" class = "checks" id="checkmax" onclick="plotlegend('max')" checked>
     <label style="color:white; margin-top: 11px">Mean:</label> <input type="checkbox" class = "checks" id="checkmean" onclick="plotlegend('mean')">
   </div>
-  <div id="removelayers" style="margin-left:30px;">
+  <div id="removelayers" style="">
     {% gizmo removebutton %}
-  </div>
-  <p style="font-weight:bold; margin-left:30px; color:white; margin-top: 11px;">Region Select</p>
-  <div id="regionselect">
-    {% gizmo regioninput %}
-  </div>
-  <p style="font-weight:bold; margin-left:30px; color:white; margin-top: 11px;">Time Select</p>
-  <div id="timeselect">
-    {% gizmo timeinput %}
-  </div>
-  <p style="font-weight:bold; margin-left:30px; color:white; margin-top: 11px;">Date Select</p>
-  <div id="dateselect">
-    {% gizmo dateinput %}
   </div>
   <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="bottom" title="Help">
     <a data-toggle="modal" data-target="#help-modal"><span class="glyphicon glyphicon-question-sign"></span></a>
@@ -78,6 +76,9 @@
         <form action="" method="post" enctype="multipart/form-data">.
           {% csrf_token %}
         <div class="modal-body">
+          <h6 style="font-weight:bold">Make sure to upload the following files on thredds server:</h6>
+          <h6 style="font-weight:bold">"filename"handproj.nc, "filename"catchproj.nc</h6>
+          <h6 style="font-weight:bold">"filename"ratingcurve.csv, "filename"drainage.json</h6>
           {% gizmo addregion %}
           {% gizmo addfilename %}
           {% gizmo addwatershed %}
@@ -96,7 +97,7 @@
 
   <div class="modal fade" id="view-region-modal" tabindex="-1" role="dialog" aria-labelledby="help-modal-label">
     <div class="modal-dialog" role="document">
-      <div class="modal-content">
+      <div class="modal-content" style="width:130%">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
           <h5 class="modal-title" id="add-region-modal-label">View Region Information</h5>
