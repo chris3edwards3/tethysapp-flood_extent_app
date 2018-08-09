@@ -2,25 +2,25 @@
 {% load tethys_gizmos %}
 
 {% block header_buttons %}
+  {% if user.is_superuser or user.is_staff %}
+    {% gizmo view_button %}
+    {% gizmo add_button %}
+  {% endif %}
+  <p style="font-weight:bold; color:white; margin-top: 11px;">Region Select</p>
+  <div id="regionselect">
+    {% gizmo regioninput %}
+  </div>
+  <p style="font-weight:bold; color:white; margin-top: 11px;">Date Select</p>
+  <div id="dateselect">
+    {% gizmo dateinput %}
+  </div>
   <div id="checkboxes">
     <label style="color:white; margin-top: 11px">Probability:</label><input type="checkbox" class = "checks" id="checkprob" onclick="plotlegend('prob')">
     <label style="color:white; margin-top: 11px">Max:</label> <input type="checkbox" class = "checks" id="checkmax" onclick="plotlegend('max')" checked>
     <label style="color:white; margin-top: 11px">Mean:</label> <input type="checkbox" class = "checks" id="checkmean" onclick="plotlegend('mean')">
   </div>
-  <div id="removelayers" style="margin-left:30px;">
+  <div id="removelayers" style="">
     {% gizmo removebutton %}
-  </div>
-  <p style="font-weight:bold; margin-left:30px; color:white; margin-top: 11px;">Region Select</p>
-  <div id="regionselect">
-    {% gizmo regioninput %}
-  </div>
-  <p style="font-weight:bold; margin-left:30px; color:white; margin-top: 11px;">Time Select</p>
-  <div id="timeselect">
-    {% gizmo timeinput %}
-  </div>
-  <p style="font-weight:bold; margin-left:30px; color:white; margin-top: 11px;">Date Select</p>
-  <div id="dateselect">
-    {% gizmo dateinput %}
   </div>
   <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="bottom" title="Help">
     <a data-toggle="modal" data-target="#help-modal"><span class="glyphicon glyphicon-question-sign"></span></a>
@@ -57,6 +57,53 @@
           <p> 3 - Select which date you would like to view</p>
           <p> 4 - Select which flood extent type you would like to view. Max and Mean refer to using the max or mean streamflows from the 51 ensemble forecast. Probability refers to a flood extent probability
           based on all 51 ensembles</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="add-region-modal" tabindex="-1" role="dialog" aria-labelledby="help-modal-label">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h5 class="modal-title" id="add-region-modal-label">Add a Region</h5>
+        </div>
+        <form action="" method="post" enctype="multipart/form-data">.
+          {% csrf_token %}
+        <div class="modal-body">
+          <h6 style="font-weight:bold">Make sure to upload the following files on thredds server:</h6>
+          <h6 style="font-weight:bold">"filename"handproj.nc, "filename"catchproj.nc</h6>
+          <h6 style="font-weight:bold">"filename"ratingcurve.csv, "filename"drainage.json</h6>
+          {% gizmo addregion %}
+          {% gizmo addfilename %}
+          {% gizmo addwatershed %}
+          {% gizmo addsubbasin %}
+          {% gizmo addhost %}
+          {% gizmo addsptriver %}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <input name="submit" id="submit" type="submit" class="btn btn-primary">
+        </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="view-region-modal" tabindex="-1" role="dialog" aria-labelledby="help-modal-label">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content" style="width:130%">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h5 class="modal-title" id="add-region-modal-label">View Region Information</h5>
+        </div>
+        <div class="modal-body">
+          {% gizmo regions_table %}
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>

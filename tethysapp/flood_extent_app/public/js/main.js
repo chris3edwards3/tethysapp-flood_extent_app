@@ -13,8 +13,6 @@ L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
 
-displaygeojson()
-
 var Legend = L.control({
     position: 'bottomright'
 });
@@ -31,6 +29,75 @@ Legend.addTo(map);
 
 netcdf = L.layerGroup()
 warningpoints = L.layerGroup()
+drainageline = L.geoJSON()
+
+initialtable()
+
+
+function initialtable() {
+    var mytable = document.getElementById('regiontable').getElementsByTagName("tbody")[0]
+    var rowcount = document.getElementById('regiontable').getElementsByTagName("tbody")[0].getElementsByTagName("tr").length
+
+    for (b = 0; b < rowcount; b++) {
+        data = mytable.rows[b].cells[0].innerHTML
+        row = mytable.rows[b]
+        var button = row.insertCell(6)
+        var btn = document.createElement('input')
+        btn.type = "button"
+        btn.className = "btn btn-danger"
+        btn.value = "X"
+        btn.onclick = (function(data) {return function () {delete_entry(data)}})(data)
+        button.appendChild(btn)
+    }
+}
+
+function delete_entry(region) {
+    $.ajax({
+            type: 'GET',
+            url: '/apps/flood-extent-app/deleteentry',
+            data: {'region':region},
+            success: function (data) {
+
+                var mytable = document.getElementById('regiontable').getElementsByTagName("tbody")[0]
+                var rowcount = document.getElementById('regiontable').getElementsByTagName("tbody")[0].getElementsByTagName("tr").length
+
+                mytable.innerHTML = ''
+
+                for (var key in data) {
+                    if (key != 'success') {
+                        var regionname = data[key][0]
+                        var row = mytable.insertRow(-1)
+                        if (row.rowIndex % 2) {
+                            row.className = 'odd'
+                        } else {
+                            row.className = 'even'
+                        }
+                        var region = row.insertCell(0)
+                        var filename = row.insertCell(1)
+                        var watershed = row.insertCell(2)
+                        var subbasin = row.insertCell(3)
+                        var host = row.insertCell(4)
+                        var sptriver = row.insertCell(5)
+                        var button = row.insertCell(6)
+                        region.innerHTML = data[key][0]
+                        filename.innerHTML = data[key][1]
+                        watershed.innerHTML = data[key][2]
+                        subbasin.innerHTML = data[key][3]
+                        host.innerHTML = data[key][4]
+                        sptriver.innerHTML = data[key][5]
+                        var btn = document.createElement('input')
+                        btn.type = "button"
+                        btn.className = "btn btn-danger"
+                        btn.value = "X"
+                        btn.onclick = (function(regionname) {return function () {delete_entry(regionname)}})(regionname)
+                        button.appendChild(btn)
+                    }
+                }
+
+            }
+        })
+}
+
 
 
 function plotlegend(stat) {
@@ -81,16 +148,18 @@ function removelayers() {
 $("#dateinput").on('change',get_warning_points);
 
 
-function addnetcdflayer (wms, scale) {
+function addnetcdflayer (wms, scale, maxheight) {
 
     if (scale == 'prob') {
         var range = '1.5,100'
         var layer = 'Flood_Probability'
         var style = 'boxfill/prob'
+        var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/probscale.nc?REQUEST=GetLegendGraphic&LAYER=Flood_Probability&PALETTE=prob&COLORSCALERANGE=0,100"
     } else {
-        var range = '0,40'
+        var range = '0,' + maxheight
         var layer = 'Height'
         var style = 'boxfill/whiteblue'
+        var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=whiteblue&COLORSCALERANGE=0," + maxheight
     }
 
     var testLayer = L.tileLayer.wms(wms, {
@@ -106,6 +175,21 @@ function addnetcdflayer (wms, scale) {
         updateTimeDimension: true,
     });
     netcdf.addLayer(testTimeLayer).addTo(map)
+
+    $(".legend").remove()
+
+    var Legend = L.control({
+        position: 'bottomright'
+    });
+
+    Legend.onAdd = function(map) {
+        var div = L.DomUtil.create('div', 'info legend');
+        div.innerHTML +=
+            '<img src="' + src + '" alt="legend">';
+        return div;
+    };
+
+    Legend.addTo(map);
 }
 
 function waiting_output() {
@@ -120,7 +204,7 @@ function whenClicked(e) {
     var checkmax = document.getElementById("checkmax");
     var checkmean = document.getElementById("checkmean");
     var forecast = $("#timeinput").val()
-    var region = $("#regioninput").val()
+    var region = $("#regioninput option:selected").text()
     
     if (forecast == ' ') {
         alert('no forecast time is selected')
@@ -164,7 +248,8 @@ function whenClicked(e) {
                         
                         var testWMS="https://tethys.byu.edu/thredds/wms/testAll/floodextent/prob" + data['gridid'] + ".nc"
                         var scale = 'prob'
-                        addnetcdflayer (testWMS, scale)
+                        var maxheight = data['maxheight']
+                        addnetcdflayer (testWMS, scale, maxheight)
                         $(".loading").remove()
                         
                     }
@@ -197,7 +282,8 @@ function whenClicked(e) {
                         
                         var testWMS="https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedgrid" + data['gridid'] + ".nc"
                         var scale = 'flooded'
-                        addnetcdflayer (testWMS, scale)
+                        var maxheight = data['maxheight']
+                        addnetcdflayer (testWMS, scale, maxheight)
                         $(".loading").remove()
                     
                     }
@@ -223,16 +309,25 @@ function changegeojson() {
         return div;
     };
     loading.addTo(map);
-    map.removeLayer(drainageline);
+
+    map.removeLayer(drainageline)
 
     if (warningpoints) {
         warningpoints.clearLayers()
     }
 
+
     displaygeojson()
+    get_dates()
 }
 
 function displaygeojson() {
+
+    drainageline = L.geoJSON()
+
+    if (drainageline) {
+        drainageline.removeFrom(map)
+    }
 
     var region = $("#regioninput").val();
 
@@ -247,15 +342,23 @@ function displaygeojson() {
 
         }, success: function (response) {
 
-            console.log(response)
+            if (response['errormessage']) {
 
-            drainageline = L.geoJSON(response, {
-            onEachFeature: onEachFeature}).addTo(map)
+                alert(response['errormessage'])
+                $(".loading").remove()
 
-            map.fitBounds(drainageline.getBounds());
+            } else {
 
-            $(".loading").remove()
+                drainageline = L.geoJSON(response, {
+                    onEachFeature: onEachFeature
+                    }
+                ).addTo(map)
 
+                map.fitBounds(drainageline.getBounds());
+
+                $(".loading").remove()
+
+            }
         }
     })
 }
@@ -263,9 +366,9 @@ function displaygeojson() {
 $("#regioninput").on('change',changegeojson);
 
 
-get_dates = function(){
+function get_dates(){
     var time = $("#timeinput").val();
-    var region = $("#regioninput").val();
+    var region = $("#regioninput option:selected").text()
     $("#dateinput").empty()
 
     if (warningpoints) {
@@ -300,8 +403,6 @@ get_dates = function(){
 
 };
 
-$("#timeinput").on('change',get_dates);
-
 function get_warning_points() {
 
     removelayers()
@@ -316,7 +417,7 @@ function get_warning_points() {
 
     var date = $("#dateinput").val();
     var forecast = $("#timeinput").val()
-    var region = $("#regioninput").val()
+    var region = $("#regioninput option:selected").text()
 
     $.ajax({
         url: '/apps/flood-extent-app/displaywarningpts',
@@ -357,6 +458,24 @@ function get_warning_points() {
         }
     });
 }
+
+function openregionmodal() {
+    $("#add-region-modal").modal('show')
+}
+
+function openviewmodal() {
+    $("#view-region-modal").modal('show')
+}
+
+
+
+//set_up_region = function () {
+//    var files = $("#files")[0].files
+//    alert(files)
+//}
+//
+//$("#submit").on('click',set_up_region);
+
 
 $(function() {
 //    $("#app-content-wrapper").removeClass('show-nav')
