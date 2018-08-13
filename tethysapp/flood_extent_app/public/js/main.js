@@ -312,11 +312,6 @@ function changegeojson() {
 
     map.removeLayer(drainageline)
 
-    if (warningpoints) {
-        warningpoints.clearLayers()
-    }
-
-
     displaygeojson()
     get_dates()
 }
@@ -357,7 +352,6 @@ function displaygeojson() {
                 map.fitBounds(drainageline.getBounds());
 
                 $(".loading").remove()
-
             }
         }
     })
@@ -388,15 +382,16 @@ function get_dates(){
                 var i;
                 var date;
 
+                $("#dateinput").append('<option value=""></option>');
+
                 if (response['datelist'] == 'No Dates Available') {
                     $("#dateinput").append('<option value=No Dates Available>No Dates Available</option>');
                 } else {
                     for (i = 0; i < datelist.length; i++) {
                         date = datelist[i];
-                        $("#dateinput").append('<option value="' + date[1] + '">' + date[0] + '</option>');
+                        $("#dateinput").append('<option id= "' + date[1] + '" value="' + date[1] + '">' + date[0] + '</option>');
                     }
                 }
-
         }
     });
 

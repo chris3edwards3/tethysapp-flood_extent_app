@@ -81,15 +81,9 @@ def createnetcdf(request):
     lats = gridonly.lat.values
     lons = gridonly.lon.values
 
-    if region == 'Nepal' or region == 'Dominican Republic' or region == 'Nepal(Historical)':
-        varies = 0
-    elif region == 'Bangladesh':
-        varies = 1
-
-
     # scaling down hand netcdf to specific gridid size
-    handsmall = hand.sel(lat=slice(lats[0], lats[-1] - (varies * (lats[0] - lats[1]))))
-    handsmall = handsmall.sel(lon=slice(lons[0], lons[-1] - (varies * (lons[0] - lons[1]))))
+    handsmall = hand.sel(lat=lats, method='nearest')
+    handsmall = handsmall.sel(lon=lons, method='nearest')
 
     ratcurve = pd.read_csv(ratingcurve)
     gridcurve = ratcurve[ratcurve.GridID == gridid]
@@ -373,14 +367,9 @@ def createprobnetcdf(request):
         lats = gridonly.lat.values
         lons = gridonly.lon.values
 
-        if region == 'Nepal' or region == 'Dominican Republic' or region == 'Nepal(Historical)':
-            varies = 0
-        elif region == 'Bangladesh':
-            varies = 1
-
         # scaling down hand netcdf to specific gridid size
-        handsmall = hand.sel(lat=slice(lats[0], lats[-1] - (varies * (lats[0] - lats[1]))))
-        handsmall = handsmall.sel(lon=slice(lons[0], lons[-1] - (varies * (lons[0] - lons[1]))))
+        handsmall = hand.sel(lat=lats, method='nearest')
+        handsmall = handsmall.sel(lon=lons, method='nearest')
 
         del flowlist[0]
 
