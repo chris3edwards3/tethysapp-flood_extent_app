@@ -16,6 +16,7 @@ import logging
 
 Base = declarative_base()
 
+
 class Regiondb(Base):
 
     __tablename__ = 'regions'
@@ -28,11 +29,10 @@ class Regiondb(Base):
     spt_river = Column(Integer)
 
 
-
 def createnetcdf(request):
 
-    tethys_token = app.get_custom_setting('tethys_token')
-    tethys_staging_token = app.get_custom_setting('tethys_staging_token')
+    token = app.get_custom_setting('spt_access_token')
+    api_url = app.get_custom_setting('spt_url') + '/api/GetForecast/'
     thredds = app.get_custom_setting('thredds_folder')
 
     region = request.GET.get('region')
@@ -47,16 +47,8 @@ def createnetcdf(request):
             filename = db.filename
             watershed = db.watershed
             subbasin = db.subbasin
-            hostsite = db.host
 
     session.close()
-
-    host = 'http://' + hostsite + '/apps/streamflow-prediction-tool/api/GetForecast/'
-
-    if hostsite == 'tethys.byu.edu':
-        token = 'Token ' + tethys_token
-    elif hostsite == 'tethys-staging.byu.edu':
-        token = 'Token ' + tethys_staging_token
 
     catchfile = filename + 'catchproj.nc'
     handfile = filename + 'handproj.nc'
@@ -69,7 +61,6 @@ def createnetcdf(request):
     catchfloodnetcdf = thredds + catchfile
     handnetcdf = thredds + handfile
     ratingcurve = thredds + ratfile
-
 
     catchfloods = xarray.open_dataset(catchfloodnetcdf, autoclose=True).catchproj
     hand = xarray.open_dataset(handnetcdf, autoclose=True).handproj
@@ -95,8 +86,8 @@ def createnetcdf(request):
 
     request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=comid,
                           forecast_folder=date, stat_type=forecasttype, return_format='csv')
-    request_headers = dict(Authorization= token)
-    res = requests.get(host, params=request_params,
+    request_headers = dict(Authorization=token)
+    res = requests.get(api_url, params=request_params,
                        headers=request_headers)
 
     if res:
@@ -137,7 +128,7 @@ def createnetcdf(request):
             else:
                 heights.append(H)
 
-        maxheight=str(max(heights))
+        maxheight = str(max(heights))
 
         return_obj['maxheight'] = maxheight
 
@@ -179,7 +170,7 @@ def createnetcdf(request):
         return_obj['gridid'] = gridid
 
         return JsonResponse(return_obj)
-    
+
     else:
 
         return_obj = {'success': True,
@@ -214,6 +205,7 @@ def displaydrainagelines(request):
             return_obj['errormessage'] = 'No ' + geolayer + ' exists on the Thredds server. Please upload correct file'
             return JsonResponse(return_obj)
 
+
 def displaywarningpts(request):
     return_obj = {
         'success': False
@@ -222,8 +214,8 @@ def displaywarningpts(request):
     # Check if its an ajax post request
     if request.is_ajax() and request.method == 'GET':
 
-        tethys_token = app.get_custom_setting('tethys_token')
-        tethys_staging_token = app.get_custom_setting('tethys_staging_token')
+        token = app.get_custom_setting('spt_access_token')
+        api_url = app.get_custom_setting('spt_url') + '/api/GetWarningPoints/'
 
         date = request.GET.get('date')
         region = request.GET.get('region')
@@ -241,34 +233,25 @@ def displaywarningpts(request):
             if db.region == region:
                 watershed = db.watershed
                 subbasin = db.subbasin
-                hostsite = db.host
 
         session.close()
 
-        if hostsite == 'tethys.byu.edu':
-            token = 'Token ' + tethys_token
-        elif hostsite == 'tethys-staging.byu.edu':
-            token = 'Token ' + tethys_staging_token
-
-        host = 'http://' + hostsite + '/apps/streamflow-prediction-tool/api/GetWarningPoints/'
-
-        returnperiods = {'2':'yellow','10':'red','20':'purple'}
+        returnperiods = {'2': 'yellow', '10': 'red', '20': 'purple'}
 
         return_obj = {}
 
         for periods in returnperiods:
 
-            request_params = dict(watershed_name=watershed, subbasin_name=subbasin, return_period=int(periods), forecast_folder=date)
-            request_headers = dict(Authorization= token)
-            res = requests.get(host,
-                               params=request_params, headers=request_headers)
+            request_params = dict(watershed_name=watershed, subbasin_name=subbasin,
+                                  return_period=int(periods), forecast_folder=date)
+            request_headers = dict(Authorization=token)
+            res = requests.get(api_url, params=request_params, headers=request_headers)
 
             if res:
 
                 points = json.loads(res.content)
 
                 return_points = []
-
 
                 for point in points['features']:
                     if float(point['geometry']['coordinates'][0]) < nelon and float(point['geometry']['coordinates'][0]) > swlon:
@@ -285,14 +268,13 @@ def displaywarningpts(request):
 
                 return JsonResponse(return_obj)
 
-
     return JsonResponse(return_obj)
 
 
 def createprobnetcdf(request):
 
-    tethys_token = app.get_custom_setting('tethys_token')
-    tethys_staging_token = app.get_custom_setting('tethys_staging_token')
+    token = app.get_custom_setting('spt_access_token')
+    api_url = app.get_custom_setting('spt_url') + '/api/GetEnsemble/'
     thredds = app.get_custom_setting('thredds_folder')
 
     gridid = int(request.GET.get('gridid'))
@@ -310,20 +292,12 @@ def createprobnetcdf(request):
             filename = db.filename
             watershed = db.watershed
             subbasin = db.subbasin
-            hostsite = db.host
 
     session.close()
 
     catchfile = filename + 'catchproj.nc'
     handfile = filename + 'handproj.nc'
     ratfile = filename + 'ratingcurve.csv'
-
-    host = 'http://' + hostsite + '/apps/streamflow-prediction-tool/api/GetEnsemble/'
-
-    if hostsite == 'tethys.byu.edu':
-        token = 'Token ' + tethys_token
-    elif hostsite == 'tethys-staging.byu.edu':
-        token = 'Token ' + tethys_staging_token
 
     catchfloodnetcdf = thredds + catchfile
     handnetcdf = thredds + handfile
@@ -337,14 +311,11 @@ def createprobnetcdf(request):
     maxQ = float(gridcurve['Q'].iloc[-1])
     maxH = float(gridcurve['H'].iloc[-1])
 
-    request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=comid,
-                          forecast_folder=date, ensemble='1-51')
+    request_params = dict(watershed_name=watershed, subbasin_name=subbasin,
+                          reach_id=comid, forecast_folder=date, ensemble='1-51')
     request_headers = dict(Authorization=token)
-    res = requests.get(host,
-                       params=request_params,
-                       headers=request_headers)
+    res = requests.get(api_url, params=request_params, headers=request_headers)
 
-    
     if res:
 
         return_obj = {'success': True}
@@ -444,15 +415,14 @@ def createprobnetcdf(request):
 
         ds.to_netcdf(thredds + 'prob' + str(gridid) + '.nc')
 
-        return_obj = {'success': True, 'gridid': gridid, 'maxheight':'100'}
+        return_obj = {'success': True, 'gridid': gridid, 'maxheight': '100'}
 
         return JsonResponse(return_obj)
 
-    
     else:
 
-
-        return_obj = {'success': True, 'errormessage': "Error retrieving flows from the Streamflow Prediction Tool: " + res.content}
+        return_obj = {'success': True,
+                      'errormessage': "Error retrieving flows from the Streamflow Prediction Tool: " + res.content}
 
         return JsonResponse(return_obj)
 
@@ -465,8 +435,8 @@ def getdates(request):
     # Check if its an ajax post request
     if request.is_ajax() and request.method == 'GET':
 
-        tethys_token = app.get_custom_setting('tethys_token')
-        tethys_staging_token = app.get_custom_setting('tethys_staging_token')
+        token = app.get_custom_setting('spt_access_token')
+        api_url = app.get_custom_setting('spt_url') + '/api/GetAvailableDates/'
 
         region = request.GET.get('region')
 
@@ -484,17 +454,9 @@ def getdates(request):
 
         session.close()
 
-        if hostsite == 'tethys.byu.edu':
-            token = 'Token ' + tethys_token
-        elif hostsite == 'tethys-staging.byu.edu':
-            token = 'Token ' + tethys_staging_token
-
-        request_headers = dict(Authorization= token)
+        request_headers = dict(Authorization=token)
         request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=reach)
-        res = requests.get('http://' + hostsite + '/apps/streamflow-prediction-tool/api/GetAvailableDates/',
-                           params=request_params,
-                           headers=request_headers)
-
+        res = requests.get(api_url, params=request_params, headers=request_headers)
 
         dates = ast.literal_eval(res.content)
         fulldate = []
@@ -502,7 +464,6 @@ def getdates(request):
         for date in dates:
             fulldate.append((date[:4] + "-" + date[4:6] + "-" + date[6:8], date))
 
-        return_obj = {'success':True, 'datelist':fulldate}
+        return_obj = {'success': True, 'datelist': fulldate}
 
     return JsonResponse(return_obj)
-

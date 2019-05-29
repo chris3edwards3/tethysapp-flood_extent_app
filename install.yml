@@ -9,3 +9,5 @@ conda:
   channels:
   dependencies:
 
+post:
+  - ./load_thredds_data.sh

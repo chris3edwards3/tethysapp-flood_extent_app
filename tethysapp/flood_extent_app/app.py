@@ -69,22 +69,22 @@ class FloodExtentApp(TethysAppBase):
 
         return (
             CustomSetting(
-                name='tethys_staging_token',
+                name='spt_url',
                 type=CustomSetting.TYPE_STRING,
-                description='Unique tethys-staging token to access data from Streamflow Prediction Tool',
-                required = True
-            ),
+                description='URL for the Streamflow Prediction Tool',
+                required=True,
+                default='https://tethys.byu.edu/apps/streamflow-prediction-tool'),
             CustomSetting(
-                name='tethys_token',
+                name='spt_access_token',
                 type=CustomSetting.TYPE_STRING,
-                description='Unique tethys token to access data from Streamflow Prediction Tool',
+                description='Unique token to access data from Streamflow Prediction Tool',
                 required=True
             ),
             CustomSetting(
                 name='thredds_folder',
                 type=CustomSetting.TYPE_STRING,
                 description='Flood Extent Thredds Directory (must contain geojson drainage lines, hand, rating curve, and catchments)',
-                required = True
+                required=True
             ),
         )
 
