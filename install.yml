@@ -10,6 +10,7 @@ conda:
     - conda-forge
   dependencies:
     - netcdf4
+    - xarray
 
 post:
   - ./load_thredds_data.sh

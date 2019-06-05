@@ -20,6 +20,8 @@ if [ "$1" == "" ]; then
     echo "Invalid Source Data Directory"
 fi
 
+mkdir -p $1/thredds/public
+
 chmod 0755 -R $1/thredds/public
 
 for i in "${links[@]}"
