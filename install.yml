@@ -4,10 +4,12 @@ version: 1.0
 name: flood_extent_app
 
 conda:
-  skip: true
+  skip: false
   # Putting in a skip true param will skip the entire section
   channels:
+    - conda-forge
   dependencies:
+    - netcdf4
 
 post:
   - ./load_thredds_data.sh

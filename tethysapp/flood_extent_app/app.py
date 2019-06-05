@@ -2,6 +2,8 @@ from tethys_sdk.base import TethysAppBase, url_map_maker
 from tethys_sdk.app_settings import CustomSetting
 from tethys_sdk.app_settings import PersistentStoreDatabaseSetting
 
+import os
+
 
 class FloodExtentApp(TethysAppBase):
     """
@@ -78,14 +80,24 @@ class FloodExtentApp(TethysAppBase):
                 name='spt_access_token',
                 type=CustomSetting.TYPE_STRING,
                 description='Unique token to access data from Streamflow Prediction Tool',
-                required=True
+                required=True,
+                default='4d16dfa39c26a2200e49d2662215b988fb3d53cf'
             ),
             CustomSetting(
                 name='thredds_folder',
                 type=CustomSetting.TYPE_STRING,
                 description='Flood Extent Thredds Directory (must contain geojson drainage lines, hand, rating curve, and catchments)',
-                required=True
+                required=True,
+                default=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
+                    os.path.dirname(os.path.dirname(__file__)))))), 'thredds', 'public', 'flood_extent_data')
             ),
+            CustomSetting(
+                name='thredds_url',
+                type=CustomSetting.TYPE_STRING,
+                description='Flood Extent Thredds URL',
+                required=True,
+                default='http://localhost:9000/thredds/'
+            )
         )
 
     def persistent_store_settings(self):

@@ -1,6 +1,9 @@
 $("#app-content-wrapper").removeClass('show-nav')
 $(".toggle-nav").removeClass('toggle-nav')
 
+// Ensure it has a slash at the end
+thredds_url = thredds_url.replace(/\/?$/, '/');
+
 var map = L.map('map', {
     zoom: 7,
     fullscreenControl: true,
@@ -18,7 +21,7 @@ var Legend = L.control({
 });
 
 Legend.onAdd = function(map) {
-    var src= "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=whiteblue&COLORSCALERANGE=0,40";
+    var src= `${thredds_url}floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=whiteblue&COLORSCALERANGE=0,40`;
     var div = L.DomUtil.create('div', 'info legend');
     div.innerHTML +=
         '<img src="' + src + '" alt="legend">';
@@ -112,20 +115,20 @@ function plotlegend(stat) {
 
     if (stat == 'prob') {
 
-        var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/probscale.nc?REQUEST=GetLegendGraphic&LAYER=Flood_Probability&PALETTE=prob&COLORSCALERANGE=0,100"
+        var src = `${thredds_url}probscale.nc?REQUEST=GetLegendGraphic&LAYER=Flood_Probability&PALETTE=prob&COLORSCALERANGE=0,100`
 
         checkmax.checked = false
         checkmean.checked = false
 
     } else if (stat == 'max') {
 
-        var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=whiteblue&COLORSCALERANGE=0,40"
+        var src = `${thredds_url}floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=whiteblue&COLORSCALERANGE=0,40`
 
         checkprob.checked = false
         checkmean.checked = false
     } else if (stat == 'mean') {
 
-        var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=whiteblue&COLORSCALERANGE=0,40"
+        var src = `${thredds_url}floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=whiteblue&COLORSCALERANGE=0,40`
 
         checkmax.checked = false
         checkprob.checked = false
@@ -154,12 +157,12 @@ function addnetcdflayer (wms, scale, maxheight) {
         var range = '1.5,100'
         var layer = 'Flood_Probability'
         var style = 'boxfill/prob'
-        var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/probscale.nc?REQUEST=GetLegendGraphic&LAYER=Flood_Probability&PALETTE=prob&COLORSCALERANGE=0,100"
+        var src = `${thredds_url}probscale.nc?REQUEST=GetLegendGraphic&LAYER=Flood_Probability&PALETTE=prob&COLORSCALERANGE=0,100`
     } else {
         var range = '0,' + maxheight
         var layer = 'Height'
         var style = 'boxfill/whiteblue'
-        var src = "https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=whiteblue&COLORSCALERANGE=0," + maxheight
+        var src = `${thredds_url}floodedscale.nc?REQUEST=GetLegendGraphic&LAYER=Height&PALETTE=whiteblue&COLORSCALERANGE=0,` + maxheight
     }
 
     var testLayer = L.tileLayer.wms(wms, {
@@ -246,7 +249,7 @@ function whenClicked(e) {
                             alert(data['alertmessage'])
                         }
                         
-                        var testWMS="https://tethys.byu.edu/thredds/wms/testAll/floodextent/prob" + data['gridid'] + ".nc"
+                        var testWMS=`${thredds_url}prob${data['gridid']}.nc`
                         var scale = 'prob'
                         var maxheight = data['maxheight']
                         addnetcdflayer (testWMS, scale, maxheight)
@@ -280,7 +283,7 @@ function whenClicked(e) {
                             alert(data['alertmessage'])
                         }
                         
-                        var testWMS="https://tethys.byu.edu/thredds/wms/testAll/floodextent/floodedgrid" + data['gridid'] + ".nc"
+                        var testWMS=`${thredds_url}floodedgrid` + data['gridid'] + ".nc"
                         var scale = 'flooded'
                         var maxheight = data['maxheight']
                         addnetcdflayer (testWMS, scale, maxheight)
