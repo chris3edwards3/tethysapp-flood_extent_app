@@ -8,25 +8,25 @@ import os
 from .model import get_all_regions, add_new_region
 from .app import FloodExtentApp as app
 
+
 @login_required()
 def home(request):
     """
     Controller for the app home page.
     """
 
-
     dateinput = SelectInput(name='dateinput',
-                               options=[],
-                               initial=[])
+                            options=[],
+                            initial=[])
 
     removebutton = Button(display_text='Remove Layers',
                           name='remlayers',
-                          attributes={"onclick":"removelayers()"})
+                          attributes={"onclick": "removelayers()"})
 
     regions = get_all_regions()
 
     table_rows = []
-    regionlist = [(" "," ")]
+    regionlist = [(" ", " ")]
 
     for region in regions:
         table_rows.append(
@@ -37,14 +37,12 @@ def home(request):
         )
         regionlist.append((region.region, region.filename))
 
-
     regions_table = DataTableView(
-        column_names = ('Region','File Name', 'Watershed','Subbasin', 'Host', 'SPT River', 'Delete Button'),
-        rows = table_rows,
+        column_names=('Region', 'File Name', 'Watershed', 'Subbasin', 'Host', 'SPT River', 'Delete Button'),
+        rows=table_rows,
         searching=True,
-        attributes={"id":"regiontable"}
+        attributes={"id": "regiontable"}
     )
-
 
     regioninput = SelectInput(name='regioninput',
                               options=regionlist,
@@ -55,7 +53,7 @@ def home(request):
         name='add-button',
         icon='glyphicon glyphicon-plus',
         style='success',
-        attributes = {"onclick":"openregionmodal()","style":"margin-right:5px"},
+        attributes={"onclick": "openregionmodal()", "style": "margin-right:5px"},
         submit=True
     )
 
@@ -64,39 +62,39 @@ def home(request):
         name='view-button',
         icon='glyphicon glyphicon-plus',
         style='success',
-        attributes={"onclick": "openviewmodal()","style":"margin-right:5px"},
+        attributes={"onclick": "openviewmodal()", "style": "margin-right:5px"},
         submit=True
     )
 
     addregion = TextInput(display_text='Region (what shows in dropdown)',
-                          name = 'addregion',
-                          placeholder = 'e.g. Dominican Republic',
-                          )
-
-    addfilename = TextInput(display_text='File Name (region name in preprocessed files)',
-                          name='addfilename',
-                          placeholder='e.g. dominicanrepublic',
-                          )
-
-    addwatershed = TextInput(display_text='Watershed (SPT watershed where region is located)',
-                          name='addwatershed',
+                          name='addregion',
                           placeholder='e.g. Dominican Republic',
                           )
 
+    addfilename = TextInput(display_text='File Name (region name in preprocessed files)',
+                            name='addfilename',
+                            placeholder='e.g. dominicanrepublic',
+                            )
+
+    addwatershed = TextInput(display_text='Watershed (SPT watershed where region is located)',
+                             name='addwatershed',
+                             placeholder='e.g. Dominican Republic',
+                             )
+
     addsubbasin = TextInput(display_text='Subbasin (SPT subbbasin where region is located)',
-                          name='addsubbasin',
-                          placeholder='National',
-                          )
+                            name='addsubbasin',
+                            placeholder='National',
+                            )
 
     addhost = TextInput(display_text='SPT Host (Streamflow Prediction Tool Website)',
-                            name='addhost',
-                            placeholder='e.g. tethys.byu.edu, tethys-staging.byu.edu',
-                            )
+                        name='addhost',
+                        placeholder='e.g. tethys.byu.edu, tethys-staging.byu.edu',
+                        )
 
     addsptriver = TextInput(display_text='SPT River (Any river within SPT watershed and subbasin from above)',
                             name='addsptriver',
                             placeholder='499',
-                            attributes = {"type":"number"}
+                            attributes={"type": "number"}
                             )
 
     region = ''
@@ -117,7 +115,7 @@ def home(request):
 
         has_errors = False
         region = request.POST.get('addregion')
-        filename= request.POST.get('addfilename')
+        filename = request.POST.get('addfilename')
         watershed = request.POST.get('addwatershed')
         subbasin = request.POST.get('addsubbasin')
         spt_river = request.POST.get('addsptriver')
@@ -153,11 +151,9 @@ def home(request):
 
         messages.error(request, "Please fix errors.")
 
-
-
     context = {
-        'dateinput':dateinput,
-        'removebutton':removebutton,
+        'dateinput': dateinput,
+        'removebutton': removebutton,
         'regioninput': regioninput,
         'add_button': add_button,
         'view_button': view_button,
@@ -166,8 +162,9 @@ def home(request):
         'addwatershed': addwatershed,
         'addsubbasin': addsubbasin,
         'addsptriver': addsptriver,
-        'regions_table':regions_table,
-        'addhost':addhost
+        'regions_table': regions_table,
+        'addhost': addhost,
+        'thredds_url': app.get_custom_setting('thredds_url')
     }
 
     return render(request, 'flood_extent_app/home.html', context)
