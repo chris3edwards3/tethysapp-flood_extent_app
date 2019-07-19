@@ -75,28 +75,29 @@ class FloodExtentApp(TethysAppBase):
                 type=CustomSetting.TYPE_STRING,
                 description='URL for the Streamflow Prediction Tool',
                 required=True,
-                default='https://tethys.byu.edu/apps/streamflow-prediction-tool'),
+                # default='https://tethys.byu.edu/apps/streamflow-prediction-tool'
+            ),
             CustomSetting(
                 name='spt_access_token',
                 type=CustomSetting.TYPE_STRING,
                 description='Unique token to access data from Streamflow Prediction Tool',
                 required=True,
-                default='4d16dfa39c26a2200e49d2662215b988fb3d53cf'
+                # default='4d16dfa39c26a2200e49d2662215b988fb3d53cf'
             ),
             CustomSetting(
                 name='thredds_folder',
                 type=CustomSetting.TYPE_STRING,
                 description='Flood Extent Thredds Directory (must contain geojson drainage lines, hand, rating curve, and catchments)',
                 required=True,
-                default=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
-                    os.path.dirname(os.path.dirname(__file__)))))), 'thredds', 'public', 'flood_extent_data')
+                # default=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
+                #     os.path.dirname(os.path.dirname(__file__)))))), 'thredds', 'public', 'flood_extent_data')
             ),
             CustomSetting(
                 name='thredds_url',
                 type=CustomSetting.TYPE_STRING,
                 description='Flood Extent Thredds URL',
                 required=True,
-                default='http://localhost:9000/thredds/'
+                # default='http://localhost:9000/thredds/'
             )
         )
 

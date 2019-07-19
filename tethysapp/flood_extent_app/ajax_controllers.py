@@ -31,7 +31,8 @@ class Regiondb(Base):
 
 def createnetcdf(request):
 
-    token = app.get_custom_setting('spt_access_token')
+    token_key = app.get_custom_setting('spt_access_token')
+    token = 'Token ' + token_key
     api_url = app.get_custom_setting('spt_url') + '/api/GetForecast/'
     thredds = app.get_custom_setting('thredds_folder')
 
@@ -94,7 +95,7 @@ def createnetcdf(request):
 
         return_obj = {'success': True}
 
-        content = res.content.splitlines()
+        content = res.content.decode('utf-8').splitlines()
 
         times = []
         flowlist = []
@@ -214,7 +215,8 @@ def displaywarningpts(request):
     # Check if its an ajax post request
     if request.is_ajax() and request.method == 'GET':
 
-        token = app.get_custom_setting('spt_access_token')
+        token_key = app.get_custom_setting('spt_access_token')
+        token = 'Token ' + token_key
         api_url = app.get_custom_setting('spt_url') + '/api/GetWarningPoints/'
 
         date = request.GET.get('date')
@@ -249,7 +251,7 @@ def displaywarningpts(request):
 
             if res:
 
-                points = json.loads(res.content)
+                points = json.loads(res.content.decode('utf-8'))
 
                 return_points = []
 
@@ -273,7 +275,8 @@ def displaywarningpts(request):
 
 def createprobnetcdf(request):
 
-    token = app.get_custom_setting('spt_access_token')
+    token_key = app.get_custom_setting('spt_access_token')
+    token = 'Token ' + token_key
     api_url = app.get_custom_setting('spt_url') + '/api/GetEnsemble/'
     thredds = app.get_custom_setting('thredds_folder')
 
@@ -435,7 +438,8 @@ def getdates(request):
     # Check if its an ajax post request
     if request.is_ajax() and request.method == 'GET':
 
-        token = app.get_custom_setting('spt_access_token')
+        token_key = app.get_custom_setting('spt_access_token')
+        token = 'Token ' + token_key
         api_url = app.get_custom_setting('spt_url') + '/api/GetAvailableDates/'
 
         region = request.GET.get('region')
@@ -458,7 +462,9 @@ def getdates(request):
         request_params = dict(watershed_name=watershed, subbasin_name=subbasin, reach_id=reach)
         res = requests.get(api_url, params=request_params, headers=request_headers)
 
-        dates = ast.literal_eval(res.content)
+        dates = ast.literal_eval(res.content.decode('utf-8'))
+        # dates = ast.literal_eval(res.content)
+        print('Dates = ', dates)
         fulldate = []
 
         for date in dates:

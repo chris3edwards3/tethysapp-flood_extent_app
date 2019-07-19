@@ -5,11 +5,22 @@ $(".toggle-nav").removeClass('toggle-nav')
 thredds_url = thredds_url.replace(/\/?$/, '/');
 
 var map = L.map('map', {
-    zoom: 7,
+    zoom: 3,
     fullscreenControl: true,
     timeDimension: true,
     timeDimensionControl: true,
-    center: [28.18,84.2],
+    timeDimensionControlOptions: {
+            position: "bottomleft",
+            autoPlay: true,
+            loopButton: true,
+            backwardButton: true,
+            forwardButton: true,
+            timeSliderDragUpdate: true,
+            minSpeed: 2,
+            maxSpeed: 6,
+            speedStep: 1,
+        },
+    center: [0,0],
 });
 
 L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
