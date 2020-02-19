@@ -322,14 +322,12 @@ def createprobnetcdf(request):
     if res:
 
         return_obj = {'success': True}
-
-        flows = res.content.splitlines()
-
+        flows = res.content.decode('utf-8').splitlines()
         flowlist = []
         times = []
 
         for flow in flows:
-            flowlist.append(flow.split(","))
+            flowlist.append((flow.split(",")))
 
         catchfloods = xarray.open_dataset(catchfloodnetcdf, autoclose=True).catchproj
         hand = xarray.open_dataset(handnetcdf, autoclose=True).handproj
